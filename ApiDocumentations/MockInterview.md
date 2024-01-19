@@ -16,5 +16,5 @@
   | Parameter | Values | Required | Description | Default |
     | :--- | :--- | :--- | :--- | :---|
   | `company` | `all/<company-name>` | **false** | The company interviewer works on | all
-  | `sort-by` | `company/date/rating` | **false** | sort by parameter | rating
+  | `sortBy` | `company/date/rating` | **false** | sort by parameter | rating
   

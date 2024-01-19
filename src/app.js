@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+
 const express = require("express");
 const app = express();
 
@@ -7,7 +8,8 @@ const mongoose = require("mongoose");
 
 const methodOverride = require("method-override");
 
-const morgan = require("morgan")
+const morgan = require("morgan");
+const  interviwerRouter = require("./Routes/Interviewers");
 
 const PORT = process.env.PORT;
 
@@ -57,6 +59,8 @@ const connect = async ()=>{
         console.log(err.toString());
     }
 }
+
+app.use('/interviewers',interviwerRouter)
 
 
 app.listen(PORT,(err)=>{

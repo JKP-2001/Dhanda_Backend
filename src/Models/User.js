@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema({
     firstName:{
@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema({
     },
     role:{
         type:String,
+        enum:['student','tutor'],
         required:true
     },
     meeting_scheduled:[
@@ -69,9 +70,46 @@ const userSchema = new mongoose.Schema({
     dateOfCreation:{
         type:Date
     },
-    feedbacks:[{type:mongoose.Schema.Types.ObjectId, default:[]}]
+    feedbacks:[{type:mongoose.Schema.Types.ObjectId, default:[]}],
+
+    //appears on profile at the bottom of photo
+    headline:{
+        type:String,
+        default:''
+    },
+    //only for tutor
+    rating:{
+        type:Number,
+        min:0,
+        max:5,
+        default:0
+    },
+    //only for tutor
+    interviewsTaken:{
+        type:Number,
+        validate:{
+            validator:Number.isInteger,
+            message:'It must be integer'
+        },
+        default:0
+    },
+    //only for tutor
+    price:{
+        type:Number,
+        default:0
+    },
+    //only for tutors, in minutes
+    interviewDuration:{
+        type:Number,
+        default:45
+    },
+    //only for tutors
+    category :{
+        type:String,
+        enum:['SDE','DataScience', 'Analyst']
+    }
 })
 
 const User = mongoose.model("user",userSchema)
 
-export {User}
+module.exports= {User}
