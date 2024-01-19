@@ -2,7 +2,8 @@ import mongoose from "mongoose"
 
 const replySchema = new mongoose.Schema({
     comment_id:{
-        type:mongoose.Schema.Types.ObjectId
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"comment"
     },
     creationDateAndTime:{
         type:Date
@@ -12,7 +13,8 @@ const replySchema = new mongoose.Schema({
         required:true
     },
     author_id:{
-        type:mongoose.Schema.Types.ObjectId
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"user"
     }    
 })
 

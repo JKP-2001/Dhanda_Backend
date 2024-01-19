@@ -2,7 +2,8 @@ import mongoose from "mongoose"
 
 const educationSchema = new mongoose.Schema({
     author_id:{
-        type:mongoose.Schema.Types.ObjectId
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"user"
     },
     instituteName:{
         type:String,

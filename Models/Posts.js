@@ -3,25 +3,28 @@ import mongoose from "mongoose"
 const postSchema = new mongoose.Schema({
     content:{
         type:String,
-        required:true,
     },
     likes:[{
         type:mongoose.Schema.Types.ObjectId,
-        default:[]
+        default:[],
+        ref:"user"
     }],
     share:[{
         type:mongoose.Schema.Types.ObjectId,
-        default:[]
+        default:[],
+        ref:"post"
     }],
     author:{
         type:mongoose.Schema.Types.ObjectId,
+        ref:"user"
     },
-    images:{
+    images:[{
         type:String
-    },
+    }],
     comments:[{
         type:mongoose.Schema.Types.ObjectId,
-        default:[]
+        default:[],
+        ref:"comment"
     }],
     createdAt:{
         type:Date,

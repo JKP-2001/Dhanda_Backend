@@ -14,7 +14,7 @@ const meetingSchema = new mongoose.Schema({
         required:true
     },
     participant:[
-        {type:mongoose.Schema.Types.ObjectId, default:[]},
+        {type:mongoose.Schema.Types.ObjectId, default:[], ref:"user"},
     ],
     meeting_link:{
         type:String,

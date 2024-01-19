@@ -2,7 +2,8 @@ import mongoose from "mongoose"
 
 const experienceSchema = new mongoose.Schema({
     author_id:{
-        type:mongoose.Schema.Types.ObjectId
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"user",
     },
     role:{
         type:"String",

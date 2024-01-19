@@ -5,6 +5,10 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:true,
     },
+    middleName:{
+        type:String,
+        default:""
+    },
     lastName:{
         type:String,
         required:true,
@@ -18,14 +22,13 @@ const userSchema = new mongoose.Schema({
         required:true,
     },
     role:{
-        type:String,
-        required:true
+        type:String
     },
     meeting_scheduled:[
-        {type:mongoose.Schema.Types.ObjectId, default:[]},
+        {type:mongoose.Schema.Types.ObjectId, default:[], ref:"meeting"},
     ],
     past_meeting:[
-        {type:mongoose.Schema.Types.ObjectId, default:[]},
+        {type:mongoose.Schema.Types.ObjectId, default:[], ref:"meeting"},
     ],
     profile_pic:{
         type:String,
@@ -33,31 +36,33 @@ const userSchema = new mongoose.Schema({
     },
     education:[{
         type:mongoose.Schema.Types.ObjectId, 
-        default:[]
+        default:[],
+        ref:"education"
     }],
     experience:[{
         type:mongoose.Schema.Types.ObjectId,
+        ref:"experience"
     }],
     bio:{
         type:String,
         default:""
     },
     posts:[
-        {type:mongoose.Schema.Types.ObjectId, default:[]},
+        {type:mongoose.Schema.Types.ObjectId, default:[], ref:"posts"},
     ],
     posts_Saved:[
-        {type:mongoose.Schema.Types.ObjectId, default:[]},
+        {type:mongoose.Schema.Types.ObjectId, default:[], ref:"posts"},
     ],
-    companies:{
+    companies:[{
         type:String,
         default:""
-    },
-    profiles:{
+    }],
+    profiles:[{
         type:String,
         default:""
-    },
+    }],
     followers:[
-        {type:mongoose.Schema.Types.ObjectId, default:[]},
+        {type:mongoose.Schema.Types.ObjectId, default:[], ref:"user"},
     ],
     available_Timeslots:[{
         type:String,
@@ -69,7 +74,7 @@ const userSchema = new mongoose.Schema({
     dateOfCreation:{
         type:Date
     },
-    feedbacks:[{type:mongoose.Schema.Types.ObjectId, default:[]}]
+    feedbacks:[{type:mongoose.Schema.Types.ObjectId, default:[], ref:"feedback"}]
 })
 
 const User = mongoose.model("user",userSchema)

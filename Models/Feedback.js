@@ -10,10 +10,12 @@ const feedbackSchema = new mongoose.Schema({
         required:true
     },
     author_id:{
-        type:mongoose.Schema.Types.ObjectId
+        type:mongoose.Schema.Types.ObjectId, 
+        ref:"user"
     },
     receiver:{
-        type:mongoose.Schema.Types.ObjectId
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"user"
     }    
 })
 
