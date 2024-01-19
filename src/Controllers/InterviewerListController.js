@@ -12,9 +12,12 @@ async function interviewerListController(req,res){
     let company = req.query.company 
     if (company === undefined) company = 'all'
 
-    let sortBy = req.query.sortBy
+    let sortBy = req.query.sortBy 
     if (sortBy === undefined) sortBy = BY_RATING
-    let allUsers = await User.find({role:'tutor'},'firstName lastName headline rating interviewsTaken price interviewDuration')
+
+    const category = req.query.category === undefined || req.query.category == 'all' ? {} : {category:req.query.category}
+
+    let allUsers = await User.find({role:'tutor',...category},'firstName lastName headline rating interviewsTaken price interviewDuration')
     // allUsers = allUsers.filter((val,idx)=>val.role == "tutor")
     switch (sortBy){
         case BY_RATING:{

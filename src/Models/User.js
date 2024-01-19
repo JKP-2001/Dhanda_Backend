@@ -106,7 +106,7 @@ const userSchema = new mongoose.Schema({
     //only for tutors
     category :{
         type:String,
-        enum:['SDE','DataScience', 'Analyst']
+        enum:['sde','dataScience', 'analyst']
     }
 })
 

@@ -9,12 +9,14 @@
 - Get the list of interviewers based on criteria
 - URL 
   ```http
-  GET /api/get-interviewers
+  GET /interviewers/all
   ```
 - Query Parameters for fetching list of interviewers
 
   | Parameter | Values | Required | Description | Default |
     | :--- | :--- | :--- | :--- | :---|
   | `company` | `all/<company-name>` | **false** | The company interviewer works on | all
-  | `sortBy` | `company/date/rating` | **false** | sort by parameter | rating
-  
+  | `sortBy` | `rating/interviewsTaken/priceHtl/priceLth` | **false** | sort by parameter | rating
+   | `page` | `Integer` | **false** |  | 1
+   | `limit` | `Integer` | **false** |  | \<Length of entire result>
+    | `category` | `sde/dataScience/analyst/all` | **false** |  | all
