@@ -31,8 +31,7 @@ const userSchema = new mongoose.Schema({
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"meeting"},
     ],
     profile_pic:{
-        type:String,
-        required:true
+        type:String
     },
     education:[{
         type:mongoose.Schema.Types.ObjectId, 
