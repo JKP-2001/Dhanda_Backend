@@ -1,6 +1,10 @@
-import mongoose from "mongoose"
+const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema({
+    username:{
+        type:String,
+        required:true,
+    },
     firstName:{
         type:String,
         required:true,
@@ -22,7 +26,9 @@ const userSchema = new mongoose.Schema({
         required:true,
     },
     role:{
-        type:String
+        type:String,
+        enum:['student','instructor'],
+        required:true
     },
     meeting_scheduled:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"meeting"},
@@ -46,6 +52,10 @@ const userSchema = new mongoose.Schema({
         type:String,
         default:""
     },
+    decription:{
+        type:String,
+        default:""
+    },
     posts:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"posts"},
     ],
@@ -63,19 +73,57 @@ const userSchema = new mongoose.Schema({
     followers:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"user"},
     ],
+    followings:[
+        {type:mongoose.Schema.Types.ObjectId, default:[], ref:"user"},
+    ],
     available_Timeslots:[{
         type:String,
         default:""
     }],
-    timeOfCreation:{
-        type:Date
+    createdAt:{
+        type:Date,
+        default:Date.now   
     },
-    dateOfCreation:{
-        type:Date
+    feedbacks:[{type:mongoose.Schema.Types.ObjectId, default:[]}],
+
+    //appears on profile at the bottom of photo
+    headline:{
+        type:String,
+        default:''
     },
-    feedbacks:[{type:mongoose.Schema.Types.ObjectId, default:[], ref:"feedback"}]
+    //only for tutor
+    rating:{
+        type:Number,
+        min:0,
+        max:5,
+        default:0
+    },
+    //only for tutor
+    interviewsTaken:{
+        type:Number,
+        validate:{
+            validator:Number.isInteger,
+            message:'It must be integer'
+        },
+        default:0
+    },
+    //only for tutor
+    price:{
+        type:Number,
+        default:0
+    },
+    //only for tutors, in minutes
+    interviewDuration:{
+        type:Number,
+        default:45
+    },
+    //only for tutors
+    category :{
+        type:String,
+        enum:['sde','dataScience', 'analyst']
+    }
 })
 
 const User = mongoose.model("user",userSchema)
 
-export {User}
+module.exports= {User}

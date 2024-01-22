@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+
 const express = require("express");
 const app = express();
 
@@ -7,11 +8,17 @@ const mongoose = require("mongoose");
 
 const methodOverride = require("method-override");
 
-const morgan = require("morgan")
+const morgan = require("morgan");
+const  interviwerRouter = require("./Routes/Interviewers");
+const { getCurrentDate } = require("./Utils/SendMail");
+const { encryptToJson, decryptFromJson } = require("./Utils/EncryptDecrypt");
+const authRouter = require("./Routes/Auth/AuthRoutes");
 
 const PORT = process.env.PORT;
 
 const DB_URI = process.env.DB_URI;
+
+const BASE_URL = process.env.BASE_URL
 
 
 app.use(express.json());
@@ -58,13 +65,27 @@ const connect = async ()=>{
     }
 }
 
+app.use(BASE_URL+"interviewers",interviwerRouter);
+
+app.use(BASE_URL+"auth", authRouter)
+
 
 app.listen(PORT,(err)=>{
+
+    const temp = getCurrentDate();
+
+    const arr = {
+        name:"Jitendra Kumar",
+        role:"JKP"
+    }
+
+
     if(err){
         console.log(err.toString());
     }
     else{
         connect();
+        console.log(`server started on ${temp}`);
         console.log(`server started on port ${PORT}`);
     }
 });
