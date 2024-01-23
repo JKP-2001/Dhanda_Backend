@@ -192,12 +192,13 @@ const Signin = async (req, res) => {
         
         const unique_data = {
             email:user.email,
-            role:user.role
+            role:user.role,
+            createdAt: Date.now()
         }
 
         const unique = encryptToJson(unique_data, process.env.ENCRYPT_KEY);
 
-        res.status(200).json({ success: true, msg: "Login successful", encryptedData, unique });
+        res.status(200).json({ success: true, msg: "Login successful", unique });
 
     } catch (err) {
 
