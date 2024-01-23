@@ -74,11 +74,6 @@ app.listen(PORT,(err)=>{
 
     const temp = getCurrentDate();
 
-    const arr = {
-        name:"Jitendra Kumar",
-        role:"JKP"
-    }
-
 
     if(err){
         console.log(err.toString());

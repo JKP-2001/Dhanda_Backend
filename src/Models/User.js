@@ -121,6 +121,11 @@ const userSchema = new mongoose.Schema({
     category :{
         type:String,
         enum:['sde','dataScience', 'analyst']
+    },
+
+    passwordChangeRequest:{
+        type:Boolean,
+        default:false
     }
 })
 

@@ -20,12 +20,17 @@ const Signup = async (req, res) => {
 
         const DATA = decryptFromJson(payload, process.env.ENCRYPT_KEY);
 
+        console.log({DATA});
+
 
         const email = DATA.email;
         const password = DATA.password;
         const repassword = DATA.repassword;
         const username = DATA.username;
-        const { firstName, middleName, lastName } = DATA;
+        const firstName = DATA.firstName;
+        const middleName = DATA.middleName;
+        const lastName = DATA.lastName;
+        
 
         const role = DATA.role;
 
@@ -91,9 +96,9 @@ const Signup = async (req, res) => {
 
         const encryptedData = encryptToJson(data, process.env.ENCRYPT_KEY);
 
-        
+        const name = firstName + " " + (middleName?middleName:"") + " " + lastName
 
-        await sendMail(email, "Verify Email", username,"", otp, "Signup");
+        await sendMail(email, "Verify Email", name,"", otp, "Signup");
 
     
 
@@ -154,15 +159,26 @@ const Signin = async (req, res) => {
 
         const DATA = decryptFromJson(payload, process.env.ENCRYPT_KEY);
 
+       
+
         const email = DATA.email;
 
         const password = DATA.password;
 
-        const findUser = await User.findOne({ email });
+        const role = DATA.role;
 
+     
+
+        const findUser = await User.findOne({ email });
+        
         if (!findUser) {
             throw new Error("User not found");
         }
+        
+        if(findUser.role!==role){
+            throw new Error("Please select the correct role.");
+        }
+
 
         const isMatch = await bcrypt.compare(password, findUser.password);
 
@@ -189,4 +205,94 @@ const Signin = async (req, res) => {
     }
 }
 
-module.exports = { Signup, verifyEmail, Signin };
+const passwordChangeRequest = async (req, res) => {
+    try {
+        const payload = req.body.payload;
+        const decryptedData = decryptFromJson(payload, process.env.ENCRYPT_KEY);
+        console.log({ decryptedData });
+
+        const email = decryptedData.email;
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const data = {
+            email: email,
+            createdAt: Date.now(),
+        };
+
+        const encryptedData = encryptToJson(data, process.env.ENCRYPT_KEY);
+
+       
+        const dataArray = [...encryptedData].map((char) => encodeURIComponent(char));
+
+       
+        const url = `http://localhost:3000/reset-password?key=${dataArray.join('')}`;
+
+        const name = user.firstName + " " + (user.middleName?user.middleName:"") + " " + user.lastName+" "+`(${user.username})`;
+
+        await sendMail(email, "Reset Password", name, url, "", "Change Password");
+
+        await User.updateOne({ email }, { $set: { passwordChangeRequest: true } });
+
+        res.status(200).json({ success: true, msg: "Email sent successfully to " + email + ". Check your inbox." });
+
+    } catch (err) {
+        res.status(400).json({ success: false, msg: err.toString() });
+    }
+};
+
+
+const resetPassword = async (req, res) => {
+
+    try{
+
+        const payload = req.body.payload;
+        const decryptedData = decryptFromJson(payload, process.env.ENCRYPT_KEY);
+
+        const email = decryptedData.email;
+
+        const password = decryptedData.password;
+
+  
+
+        const user = await User.findOne({ email });
+        
+        if(!user){
+            throw new Error("User not found");
+        }
+
+
+        
+
+        if(user.passwordChangeRequest===false){
+            throw new Error("Link already used.");
+        }
+
+
+        if(!isStrongPassword(password)){
+            throw new Error("Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character");
+        }
+
+
+        if(Date.now() - decryptedData.createdAt > 5 * 60 * 1000){
+            throw new Error("OTP expired");
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await User.findOneAndUpdate({ email }, { password: hashedPassword, passwordChangeRequest: false });
+
+        res.status(200).json({ success: true, msg: "Password changed successfully."});
+
+    }catch(err){
+
+        res.status(400).json({ success: false, msg: err.toString()});
+    }
+
+
+}
+
+module.exports = { Signup, verifyEmail, Signin, passwordChangeRequest, resetPassword };
