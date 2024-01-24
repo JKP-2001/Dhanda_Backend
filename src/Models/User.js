@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema({
         type:String,
         default:""
     },
-    decription:{
+    description:{
         type:String,
         default:""
     },
@@ -124,6 +124,11 @@ const userSchema = new mongoose.Schema({
     },
 
     passwordChangeRequest:{
+        type:Boolean,
+        default:false
+    },
+
+    onBoarding:{
         type:Boolean,
         default:false
     }

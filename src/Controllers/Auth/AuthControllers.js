@@ -20,8 +20,6 @@ const Signup = async (req, res) => {
 
         const DATA = decryptFromJson(payload, process.env.ENCRYPT_KEY);
 
-        console.log({DATA});
-
 
         const email = DATA.email;
         const password = DATA.password;
@@ -210,7 +208,6 @@ const passwordChangeRequest = async (req, res) => {
     try {
         const payload = req.body.payload;
         const decryptedData = decryptFromJson(payload, process.env.ENCRYPT_KEY);
-        console.log({ decryptedData });
 
         const email = decryptedData.email;
         const user = await User.findOne({ email });

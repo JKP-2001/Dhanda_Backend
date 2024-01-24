@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+const mongoose = require("mongoose")
 
 const educationSchema = new mongoose.Schema({
     author_id:{
@@ -17,6 +17,10 @@ const educationSchema = new mongoose.Schema({
         type:Date,
         requried:true
     },
+    onGoing:{
+        type:Boolean,
+        default:false
+    },
     description:{
         type:String
     },
@@ -32,4 +36,4 @@ const educationSchema = new mongoose.Schema({
 
 const Education = mongoose.model("education",educationSchema)
 
-export {Education}
+module.exports = {Education}

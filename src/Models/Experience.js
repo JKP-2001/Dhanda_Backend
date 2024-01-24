@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+const mongoose = require("mongoose");
 
 const experienceSchema = new mongoose.Schema({
     author_id:{
@@ -13,9 +13,14 @@ const experienceSchema = new mongoose.Schema({
         type:Date,
         reuqired:true
     },
+    onGoing:{
+        type:Boolean,
+        default:false
+    },
+    
     endDate:{
         type:Date,
-        required:true
+        default:Date.now()
     },
     description:{
         type:String,
@@ -23,9 +28,14 @@ const experienceSchema = new mongoose.Schema({
     company:{
         type:String,
         required:true
-    }    
+    },
+    
+    createdAt:{
+        type:Date,
+        default:Date.now()
+    }
 })
 
 const Experience = mongoose.model("experience",experienceSchema)
 
-export {Experience}
+module.exports = {Experience}
