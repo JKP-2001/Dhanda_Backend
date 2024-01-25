@@ -13,6 +13,7 @@ const  interviwerRouter = require("./Routes/Interviewers");
 const { getCurrentDate } = require("./Utils/SendMail");
 const { encryptToJson, decryptFromJson } = require("./Utils/EncryptDecrypt");
 const authRouter = require("./Routes/Auth/AuthRoutes");
+const userRouter = require("./Routes/User/userRoutes");
 
 const PORT = process.env.PORT;
 
@@ -69,15 +70,12 @@ app.use(BASE_URL+"interviewers",interviwerRouter);
 
 app.use(BASE_URL+"auth", authRouter)
 
+app.use(BASE_URL+"user", userRouter);
+
 
 app.listen(PORT,(err)=>{
 
     const temp = getCurrentDate();
-
-    const arr = {
-        name:"Jitendra Kumar",
-        role:"JKP"
-    }
 
 
     if(err){

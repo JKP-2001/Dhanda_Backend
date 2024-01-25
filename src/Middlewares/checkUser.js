@@ -1,6 +1,9 @@
 
+const mongoose = require("mongoose")
 
-const User = require("../Models/User");
+const {User} = require("../Models/User")
+
+const { decryptFromJson } = require("../Utils/EncryptDecrypt");
 
 /**
  * Asynchronous function to check user authentication and set user email in request object.
@@ -14,15 +17,29 @@ const checkUser = async (req, res, next) => {
 
     try {
 
-        const { token } = req.headers;
+        const authToken = req.headers['auth-token'];
 
-        if (!token) {
+
+        if (!authToken) {
             throw new Error("Token not found");
         }
 
-        const decryptedData = decryptFromJson(token, process.env.ENCRYPT_KEY);
+        const decryptedData = decryptFromJson(authToken, process.env.ENCRYPT_KEY);
 
         const user = await User.findOne({ email: decryptedData.email });
+
+        const createdAt = decryptedData.createdAt;
+
+        // check if token is expired after 5 days
+
+        const currentTime = Date.now();
+
+        const timeDiff = currentTime - createdAt;
+
+        if (timeDiff > 5 * 24 * 60 * 60 * 1000) {
+
+            throw new Error("Token expired");
+        }
 
         if (!user) {
             throw new Error("User not found");
@@ -34,7 +51,7 @@ const checkUser = async (req, res, next) => {
 
     } catch (error) {
 
-        res.status(401).json({ message: error.message });
+        res.status(401).json({ success:false, msg: error.toString() });
     }
 }
 

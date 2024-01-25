@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema({
         type:String,
         default:""
     },
-    decription:{
+    description:{
         type:String,
         default:""
     },
@@ -121,6 +121,16 @@ const userSchema = new mongoose.Schema({
     category :{
         type:String,
         enum:['sde','dataScience', 'analyst']
+    },
+
+    passwordChangeRequest:{
+        type:Boolean,
+        default:false
+    },
+
+    onBoarding:{
+        type:Boolean,
+        default:false
     }
 })
 
