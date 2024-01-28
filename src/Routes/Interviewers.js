@@ -8,5 +8,13 @@ router.get('/all',interviewerListController)
 
 router.get('/',InterviewerProfileController)
 
+// router.post('/',function(req,res,next){
 
-module.exports = router
+//     console.log('The query is ', req.query)
+//     console.log('Body is ', req.body)
+//     res.send('hi')
+//     next()
+// })
+
+
+module.exports = {router}

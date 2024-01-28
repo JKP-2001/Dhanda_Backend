@@ -1,19 +1,15 @@
 require("dotenv").config();
 
-
 const express = require("express");
 const app = express();
-
 const mongoose = require("mongoose");
-
 const methodOverride = require("method-override");
-
 const morgan = require("morgan");
 const  interviwerRouter = require("./Routes/Interviewers");
 const { getCurrentDate } = require("./Utils/SendMail");
-const { encryptToJson, decryptFromJson } = require("./Utils/EncryptDecrypt");
 const authRouter = require("./Routes/Auth/AuthRoutes");
 const userRouter = require("./Routes/User/userRoutes");
+const DecryptReq = require("./Middlewares/DecryptReq");
 
 const PORT = process.env.PORT;
 
@@ -51,6 +47,8 @@ app.use((req, res, next) => {
     next();
 });
 
+//Adding Decrypt Middleware
+app.use(DecryptReq)
 
 const connect = async ()=>{
 

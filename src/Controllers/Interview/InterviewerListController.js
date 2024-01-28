@@ -1,4 +1,5 @@
 const { User } = require("../../Models/User")
+const { EncryptRes } = require("../../Utils/EncryptRes")
 const logger = require("../../helpers/Logger")
 const Paginator = require("../../helpers/Paginator")
 
@@ -41,7 +42,9 @@ async function interviewerListController(req,res){
     const page = req.query.page ? req.query.page : 1
     const limit = req.query.limit ? parseInt(req.query.limit) : allUsers.length;
     logger('array ', allUsers)
-    res.send(Paginator(allUsers,page,limit))
+    const paginatedResult = Paginator(allUsers, page, limit);
+    const encryptedResult = EncryptRes(paginatedResult)
+    res.send(encryptedResult)
     
 }
 
