@@ -157,7 +157,7 @@ const Signin = async (req, res) => {
         // const DATA = decryptFromJson(payload, process.env.ENCRYPT_KEY);
 
         const DATA = req.body
-
+        console.log('The dat at signin controller is :', DATA)
         const email = DATA.email;
 
         const password = DATA.password;
@@ -193,12 +193,12 @@ const Signin = async (req, res) => {
             createdAt: Date.now()
         }
 
-        // const unique = encryptToJson(unique_data, process.env.ENCRYPT_KEY);
+        const unique = encryptToJson(unique_data, process.env.ENCRYPT_KEY);
 
-        res.status(200).json(EncryptRes({ success: true, msg: "Login successful", unique_data }));
+        res.status(200).json(EncryptRes({ success: true, msg: "Login successful", unique}));
 
     } catch (err) {
-
+        console.error('Error at Siginin controller :', err)
         res.status(400).json(EncryptRes({ success: false, msg: err.toString() }));
     }
 }
