@@ -28,6 +28,7 @@ const Signup = async (req, res) => {
         
 
         const role = DATA.role;
+        console.log('The data is ', DATA)
 
         if (middleName && !isValidName(middleName)) {
             throw new Error("Invalid name");
@@ -93,13 +94,15 @@ const Signup = async (req, res) => {
 
         await sendMail(email, "Verify Email", name,"", otp, "Signup");
 
-        const responseData = { success: true, msg: "Email sent successfully to " + email +". Check your inbox." , data}
+        const encryptedData = encryptToJson(data)
+        const responseData = { success: true, msg: "Email sent successfully to " + email +". Check your inbox." , encryptedData}
         const encryptedResponseData = EncryptRes(responseData)
 
         res.status(200).json(encryptedResponseData);
 
 
     } catch (err) {
+        console.error('Error at Signup Controller :', err)
         res.status(400).json(EncryptRes({ success: false, msg: err.toString() }));
     }
 }
@@ -109,12 +112,12 @@ const verifyEmail = async (req, res) => {
 
     try {
 
-        // const encryptedData = req.body.encryptedData;
+        const encryptedData = req.body.encryptedData;
 
-        // const decryptedData = decryptFromJson(encryptedData, process.env.ENCRYPT_KEY);
+        const decryptedData = decryptFromJson(encryptedData, process.env.ENCRYPT_KEY);
 
-        // const { main, otp, createdAt} = decryptedData;
-        const {main,otp,createdAt} = req.body
+        const { main, otp, createdAt} = decryptedData;
+        // const {main,otp,createdAt} = req.body
 
         const currentTime = Date.now();
 
@@ -139,6 +142,7 @@ const verifyEmail = async (req, res) => {
         res.status(200).json(EncryptRes({ success: true, msg: "Email verified successfully." }));
 
     }catch(err){
+        console.error('Error in verify Email :', err)
         res.status(400).json(EncryptRes({ success: false, msg: err.toString() }));
     }
 }

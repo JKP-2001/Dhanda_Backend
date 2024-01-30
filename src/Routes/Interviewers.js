@@ -17,4 +17,4 @@ router.get('/',InterviewerProfileController)
 // })
 
 
-module.exports = {router}
+module.exports = router
