@@ -20,7 +20,9 @@ function Paginator(res,page,limit){
         return []
     }
 
-    const result = {}
+    const totalResults=res.length;
+
+    const result = {totalResults}
     const startIndex = (page-1)*limit;
     const endIndex = Math.min(page*limit,res.length);
 
