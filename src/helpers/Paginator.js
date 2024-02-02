@@ -4,6 +4,7 @@
  */
 
 const logger = require("./Logger");
+const {encryptToJson,decryptFromJson}= require("../Utils/EncryptDecrypt")
 
 /**
  * 
@@ -18,6 +19,7 @@ function Paginator(res,page,limit){
         logger('Error in paginator, res is not an array type')
         return []
     }
+
     const result = {}
     const startIndex = (page-1)*limit;
     const endIndex = Math.min(page*limit,res.length);
@@ -35,7 +37,8 @@ function Paginator(res,page,limit){
             limit:limit
         }
     }
-    return result;
+    const encryptedData=encryptToJson(result,process.env.ENCRYPT_KEY);
+    return encryptedData;
 }
 
 module.exports = Paginator

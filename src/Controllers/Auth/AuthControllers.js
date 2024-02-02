@@ -96,6 +96,8 @@ const Signup = async (req, res) => {
 
         const name = firstName + " " + (middleName?middleName:"") + " " + lastName
 
+        console.log(otp);
+
         await sendMail(email, "Verify Email", name,"", otp, "Signup");
 
     
