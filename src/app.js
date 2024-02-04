@@ -2,16 +2,20 @@ require("dotenv").config();
 
 const express = require("express");
 const app = express();
-
 const mongoose = require("mongoose");
-
 const methodOverride = require("method-override");
-
-const morgan = require("morgan")
+const morgan = require("morgan");
+const  interviwerRouter = require("./Routes/Interviewers");
+const { getCurrentDate } = require("./Utils/SendMail");
+const authRouter = require("./Routes/Auth/AuthRoutes");
+const userRouter = require("./Routes/User/userRoutes");
+const DecryptReq = require("./Middlewares/DecryptReq");
 
 const PORT = process.env.PORT;
 
 const DB_URI = process.env.DB_URI;
+
+const BASE_URL = process.env.BASE_URL
 
 
 app.use(express.json());
@@ -43,6 +47,8 @@ app.use((req, res, next) => {
     next();
 });
 
+//Adding Decrypt Middleware
+app.use(DecryptReq)
 
 const connect = async ()=>{
 
@@ -58,13 +64,24 @@ const connect = async ()=>{
     }
 }
 
+app.use(BASE_URL+"interviewers",interviwerRouter);
+
+app.use(BASE_URL+"auth", authRouter)
+
+app.use(BASE_URL+"user", userRouter);
+
 
 app.listen(PORT,(err)=>{
+
+    const temp = getCurrentDate();
+
+
     if(err){
         console.log(err.toString());
     }
     else{
         connect();
+        console.log(`server started on ${temp}`);
         console.log(`server started on port ${PORT}`);
     }
 });
