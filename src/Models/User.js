@@ -34,13 +34,13 @@ const userSchema = new mongoose.Schema({
         enum:['student','instructor'],
         required:true
     },
-    meeting_scheduled:[
+    meetingScheduled:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"meeting"},
     ],
-    past_meeting:[
+    pastMeeting:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"meeting"},
     ],
-    profile_pic:{
+    profilePic:{
         type:String
     },
     education:[{
@@ -63,7 +63,7 @@ const userSchema = new mongoose.Schema({
     posts:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"posts"},
     ],
-    posts_Saved:[
+    postsSaved:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"posts"},
     ],
     companies:[{
@@ -80,7 +80,7 @@ const userSchema = new mongoose.Schema({
     followings:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"user"},
     ],
-    available_Timeslots:[{
+    availableTimeslots:[{
         type:String,
         default:""
     }],

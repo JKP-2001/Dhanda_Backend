@@ -8,6 +8,7 @@ const bcrypt = require("bcryptjs");
 const { isValidEmail, isStrongPassword, isValidName, validateUsername, generateOTP } = require("../../helpers/Auth_Helper");
 const { encryptToJson, decryptFromJson } = require("../../Utils/EncryptDecrypt");
 const { sendMail } = require("../../Utils/SendMail");
+const { EncryptRes } = require("../../Utils/EncryptRes");
 
 
 
@@ -15,11 +16,7 @@ const { sendMail } = require("../../Utils/SendMail");
 
 const Signup = async (req, res) => {
     try {
-
-        const payload = req.body.payload;
-
-        const DATA = decryptFromJson(payload, process.env.ENCRYPT_KEY);
-
+        const DATA = req.body 
 
         const email = DATA.email;
         const password = DATA.password;
@@ -31,6 +28,7 @@ const Signup = async (req, res) => {
         
 
         const role = DATA.role;
+        console.log('The data is ', DATA)
 
         if (middleName && !isValidName(middleName)) {
             throw new Error("Invalid name");
@@ -92,19 +90,22 @@ const Signup = async (req, res) => {
             createdAt: Date.now()
         };
 
-        const encryptedData = encryptToJson(data, process.env.ENCRYPT_KEY);
-
         const name = firstName + " " + (middleName?middleName:"") + " " + lastName
+
+      
 
         await sendMail(email, "Verify Email", name,"", otp, "Signup");
 
-    
+        const encryptedData = encryptToJson(data)
+        const responseData = { success: true, msg: "Email sent successfully to " + email +". Check your inbox." , encryptedData}
+        const encryptedResponseData = EncryptRes(responseData)
 
-        res.status(200).json({ success: true, msg: "Email sent successfully to " + email +". Check your inbox." , encryptedData });
+        res.status(200).json(encryptedResponseData);
 
 
     } catch (err) {
-        res.status(400).json({ success: false, msg: err.toString() });
+        console.error('Error at Signup Controller :', err)
+        res.status(400).json(EncryptRes({ success: false, msg: err.toString() }));
     }
 }
 
@@ -118,6 +119,7 @@ const verifyEmail = async (req, res) => {
         const decryptedData = decryptFromJson(encryptedData, process.env.ENCRYPT_KEY);
 
         const { main, otp, createdAt} = decryptedData;
+        // const {main,otp,createdAt} = req.body
 
         const currentTime = Date.now();
 
@@ -137,14 +139,13 @@ const verifyEmail = async (req, res) => {
             throw new Error("Invalid OTP");
         }
 
-
         await User.create(main);
 
-        res.status(200).json({ success: true, msg: "Email verified successfully." });
+        res.status(200).json(EncryptRes({ success: true, msg: "Email verified successfully." }));
 
     }catch(err){
-
-        res.status(400).json({ success: false, msg: err.toString() });
+        console.error('Error in verify Email :', err)
+        res.status(400).json(EncryptRes({ success: false, msg: err.toString() }));
     }
 }
 
@@ -153,12 +154,12 @@ const Signin = async (req, res) => {
 
     try {
 
-        const payload = req.body.payload;
+        // const payload = req.body.payload;
 
-        const DATA = decryptFromJson(payload, process.env.ENCRYPT_KEY);
+        // const DATA = decryptFromJson(payload, process.env.ENCRYPT_KEY);
 
-       
-
+        const DATA = req.body
+        console.log('The dat at signin controller is :', DATA)
         const email = DATA.email;
 
         const password = DATA.password;
@@ -186,7 +187,7 @@ const Signin = async (req, res) => {
 
         const user = await User.findOne({ email }).select("-password ");
 
-        const encryptedData = encryptToJson(user, process.env.ENCRYPT_KEY);
+        // const encryptedData = encryptToJson(user, process.env.ENCRYPT_KEY);
         
         const unique_data = {
             email:user.email,
@@ -196,18 +197,19 @@ const Signin = async (req, res) => {
 
         const unique = encryptToJson(unique_data, process.env.ENCRYPT_KEY);
 
-        res.status(200).json({ success: true, msg: "Login successful", unique });
+        res.status(200).json(EncryptRes({ success: true, msg: "Login successful", unique}));
 
     } catch (err) {
-
-        res.status(400).json({ success: false, msg: err.toString() });
+        console.error('Error at Siginin controller :', err)
+        res.status(400).json(EncryptRes({ success: false, msg: err.toString() }));
     }
 }
 
 const passwordChangeRequest = async (req, res) => {
     try {
-        const payload = req.body.payload;
-        const decryptedData = decryptFromJson(payload, process.env.ENCRYPT_KEY);
+        // const payload = req.body.payload;
+        // const decryptedData = decryptFromJson(payload, process.env.ENCRYPT_KEY);
+        const decryptedData = req.body
 
         const email = decryptedData.email;
         const user = await User.findOne({ email });
@@ -235,10 +237,10 @@ const passwordChangeRequest = async (req, res) => {
 
         await User.updateOne({ email }, { $set: { passwordChangeRequest: true } });
 
-        res.status(200).json({ success: true, msg: "Email sent successfully to " + email + ". Check your inbox." });
+        res.status(200).json(EncryptRes({ success: true, msg: "Email sent successfully to " + email + ". Check your inbox." }));
 
     } catch (err) {
-        res.status(400).json({ success: false, msg: err.toString() });
+        res.status(400).json(EncryptRes({ success: false, msg: err.toString() }));
     }
 };
 
@@ -247,14 +249,13 @@ const resetPassword = async (req, res) => {
 
     try{
 
-        const payload = req.body.payload;
-        const decryptedData = decryptFromJson(payload, process.env.ENCRYPT_KEY);
+        // const payload = req.body.payload;
+        // const decryptedData = decryptFromJson(payload, process.env.ENCRYPT_KEY);
+        const decryptedData = req.body
 
         const email = decryptedData.email;
 
         const password = decryptedData.password;
-
-  
 
         const user = await User.findOne({ email });
         
@@ -262,18 +263,13 @@ const resetPassword = async (req, res) => {
             throw new Error("User not found");
         }
 
-
-        
-
         if(user.passwordChangeRequest===false){
             throw new Error("Link already used.");
         }
 
-
         if(!isStrongPassword(password)){
             throw new Error("Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character");
         }
-
 
         if(Date.now() - decryptedData.createdAt > 5 * 60 * 1000){
             throw new Error("OTP expired");
@@ -283,11 +279,11 @@ const resetPassword = async (req, res) => {
 
         await User.findOneAndUpdate({ email }, { password: hashedPassword, passwordChangeRequest: false });
 
-        res.status(200).json({ success: true, msg: "Password changed successfully."});
+        res.status(200).json(EncryptRes({ success: true, msg: "Password changed successfully."}));
 
     }catch(err){
 
-        res.status(400).json({ success: false, msg: err.toString()});
+        res.status(400).json(EncryptRes({ success: false, msg: err.toString()}));
     }
 
 

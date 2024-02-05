@@ -8,7 +8,7 @@ const CryptoJS = require('crypto-js');
  * @return {string} The encrypted JSON string
  */
 
-function encryptToJson(data, key) {
+function encryptToJson(data, key=process.env.ENCRYPT_KEY) {
   try {
     // Convert JSON data to a string
     const jsonString = JSON.stringify(data);
@@ -34,7 +34,7 @@ function encryptToJson(data, key) {
  * @return {object} The decrypted JSON object, or null if decryption fails
  */
 
-function decryptFromJson(encryptedData, key) {
+function decryptFromJson(encryptedData, key=process.env.ENCRYPT_KEY) {
   try {
     // Decrypt using AES
     const bytes = CryptoJS.AES.decrypt(encryptedData, key);
@@ -51,3 +51,12 @@ function decryptFromJson(encryptedData, key) {
 }
 
 module.exports = {encryptToJson, decryptFromJson};
+
+// require('dotenv').config({path:'../../.env'})
+
+// const demoObj = {
+//   name:"Samuel", 
+//   age:22
+// }
+// const enc = encryptToJson(demoObj)
+// console.log(enc)

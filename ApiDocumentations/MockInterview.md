@@ -20,3 +20,18 @@
    | `page` | `Integer` | **false** |  | 1
    | `limit` | `Integer` | **false** |  | \<Length of entire result>
     | `category` | `sde/dataScience/analyst/all` | **false** |  | all
+
+
+
+### 2. **Get Interviewer Profile**
+- URL 
+  ```http
+  GET /interviewers/
+  ```
+- Query Parameters for fetching list of interviewers
+
+  | Parameter | Values | Required | Description | Default |
+    | :--- | :--- | :--- | :--- | :---|
+    | `userId` | `ObjectId` | **true** |  | 
+
+
