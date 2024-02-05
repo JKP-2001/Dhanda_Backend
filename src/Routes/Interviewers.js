@@ -1,5 +1,5 @@
 const express = require('express')
-const { User } = require('../Models/User')
+const { User } = require('../Models/peoples/Instructor')
 const router = express.Router()
 const {interviewerListController} = require('../Controllers/Interview/InterviewerListController')
 const InterviewerProfileController = require('../Controllers/Interview/InterviewerProfileController')

@@ -134,6 +134,6 @@ const userSchema = new mongoose.Schema({
     }
 })
 
-const User = mongoose.model("user",userSchema)
+const Instructor = mongoose.model("instructor",userSchema)
 
-module.exports= {User}
+module.exports= {Instructor}

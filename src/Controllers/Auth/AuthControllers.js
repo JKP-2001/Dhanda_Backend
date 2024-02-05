@@ -1,15 +1,13 @@
 require("dotenv").config();
 
-
-const { User } = require("../../Models/User");
-
 const bcrypt = require("bcryptjs");
-
 const { isValidEmail, isStrongPassword, isValidName, validateUsername, generateOTP } = require("../../helpers/Auth_Helper");
 const { encryptToJson, decryptFromJson } = require("../../Utils/EncryptDecrypt");
 const { sendMail } = require("../../Utils/SendMail");
 const { EncryptRes } = require("../../Utils/EncryptRes");
-
+const { getPeople } = require("../../helpers/HelperFunctions");
+const { Student } = require("../../Models/peoples/Student");
+const { Instructor } = require("../../Models/peoples/Instructor");
 
 
 
@@ -43,14 +41,15 @@ const Signup = async (req, res) => {
             throw new Error("Invalid email");
         }
 
-        const isUser = await User.findOne({ email });
+        const people = getPeople(role)
+        const isUser = await people.findOne({ email });
 
         if (isUser) {
             throw new Error("User already exists");
         }
 
 
-        const isUsername = await User.findOne({ username });
+        const isUsername = await people.findOne({ username });
 
         if (isUsername) {
             throw new Error("Username already exists");
@@ -129,7 +128,9 @@ const verifyEmail = async (req, res) => {
             throw new Error("OTP expired");
         }
 
-        const user = await User.findOne({ email: main.email });
+        const people = getPeople(main.role)
+
+        const user = await people.findOne({ email: main.email });
 
         if (user) {
             throw new Error("User already exists.");
@@ -139,7 +140,7 @@ const verifyEmail = async (req, res) => {
             throw new Error("Invalid OTP");
         }
 
-        await User.create(main);
+        await people.create(main);
 
         res.status(200).json(EncryptRes({ success: true, msg: "Email verified successfully." }));
 
@@ -166,17 +167,17 @@ const Signin = async (req, res) => {
 
         const role = DATA.role;
 
-     
+        const people = getPeople(role)
 
-        const findUser = await User.findOne({ email });
+        const findUser = await people.findOne({ email });
         
         if (!findUser) {
             throw new Error("User not found");
         }
         
-        if(findUser.role!==role){
-            throw new Error("Please select the correct role.");
-        }
+        // if(findUser.role!==role){
+        //     throw new Error("Please select the correct role.");
+        // }
 
 
         const isMatch = await bcrypt.compare(password, findUser.password);
@@ -185,13 +186,13 @@ const Signin = async (req, res) => {
             throw new Error("Incorrect password");
         }
 
-        const user = await User.findOne({ email }).select("-password ");
+        const user = await people.findOne({ email }).select("-password ");
 
         // const encryptedData = encryptToJson(user, process.env.ENCRYPT_KEY);
         
         const unique_data = {
             email:user.email,
-            role:user.role,
+            role:role,
             createdAt: Date.now()
         }
 
@@ -212,7 +213,11 @@ const passwordChangeRequest = async (req, res) => {
         const decryptedData = req.body
 
         const email = decryptedData.email;
-        const user = await User.findOne({ email });
+
+        const student = await Student.findOne({email})
+        const instructor = await Instructor.findOne({email})
+        const people = student ? student : instructor
+        const user = await people.findOne({ email });
 
         if (!user) {
             throw new Error("User not found");
@@ -235,7 +240,7 @@ const passwordChangeRequest = async (req, res) => {
 
         await sendMail(email, "Reset Password", name, url, "", "Change Password");
 
-        await User.updateOne({ email }, { $set: { passwordChangeRequest: true } });
+        await people.updateOne({ email }, { $set: { passwordChangeRequest: true } });
 
         res.status(200).json(EncryptRes({ success: true, msg: "Email sent successfully to " + email + ". Check your inbox." }));
 
@@ -257,7 +262,11 @@ const resetPassword = async (req, res) => {
 
         const password = decryptedData.password;
 
-        const user = await User.findOne({ email });
+        const student = await Student.findOne({email})
+        const instructor = await Instructor.findOne({email})
+        const people = student ? student : instructor
+        const user = await people.findOne({ email });
+
         
         if(!user){
             throw new Error("User not found");
@@ -277,7 +286,7 @@ const resetPassword = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        await User.findOneAndUpdate({ email }, { password: hashedPassword, passwordChangeRequest: false });
+        await people.findOneAndUpdate({ email }, { password: hashedPassword, passwordChangeRequest: false });
 
         res.status(200).json(EncryptRes({ success: true, msg: "Password changed successfully."}));
 

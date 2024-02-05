@@ -1,9 +1,9 @@
 
 const mongoose = require("mongoose")
 
-const {User} = require("../Models/User")
 
 const { decryptFromJson } = require("../Utils/EncryptDecrypt");
+const { getPeople } = require("../helpers/HelperFunctions");
 
 /**
  * Asynchronous function to check user authentication and set user email in request object.
@@ -23,10 +23,10 @@ const checkUser = async (req, res, next) => {
         if (!authToken) {
             throw new Error("Token not found");
         }
-
         const decryptedData = decryptFromJson(authToken, process.env.ENCRYPT_KEY);
+        const people = getPeople(decryptedData.role)
 
-        const user = await User.findOne({ email: decryptedData.email });
+        const user = await people.findOne({ email: decryptedData.email });
 
         const createdAt = decryptedData.createdAt;
 
