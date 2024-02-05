@@ -18,7 +18,7 @@ async function interviewerListController(req,res){
 
     const category = req.query.category === undefined || req.query.category == 'all' ? {} : {category:req.query.category}
 
-    let allUsers = await User.find({role:'tutor',...category},'firstName lastName headline rating interviewsTaken price interviewDuration')
+    let allUsers = await User.find({role:'instructor',...category},'firstName lastName headline rating interviewsTaken price interviewDuration profilePic')
     // allUsers = allUsers.filter((val,idx)=>val.role == "tutor")
     switch (sortBy){
         case BY_RATING:{
@@ -41,10 +41,11 @@ async function interviewerListController(req,res){
 
     const page = req.query.page ? req.query.page : 1
     const limit = req.query.limit ? parseInt(req.query.limit) : allUsers.length;
-    logger('array ', allUsers)
+    // logger('array ', allUsers)
     const paginatedResult = Paginator(allUsers, page, limit);
+    logger(paginatedResult)
     const encryptedResult = EncryptRes(paginatedResult)
-    res.send(encryptedResult)
+    res.status(200).json(encryptedResult)
     
 }
 
