@@ -1,8 +1,48 @@
 const { Education } = require("../../Models/Education");
 const { Experience } = require("../../Models/Experience");
 const {User} = require("../../Models/User");
+const {Post} = require("../../Models/Posts");
 
 const { encryptToJson, decryptFromJson } = require("../../Utils/EncryptDecrypt");
+
+
+const fetchEducation = async (eduArr) => {
+    try{
+
+        const education = await Education.find({ _id: { $in: eduArr } });
+
+        return education;
+    }catch(err){
+
+        throw new Error(err.toString());
+    }
+}
+
+const fetchExperience = async (expArr) => {
+    try{
+
+        const experience = await Experience.find({ _id: { $in: expArr } });
+
+        return experience;
+    }catch(err){
+
+        throw new Error(err.toString());
+    }
+}
+
+const fetchPost = async (postArr) => {
+
+    try {
+
+        const posts = await Post.find({ _id: { $in: postArr } });
+
+        return posts;
+
+    } catch (error) {
+
+        throw new Error(error.toString());
+    }
+}
 
 
 const getUserData = async (req, res) => {
@@ -15,7 +55,21 @@ const getUserData = async (req, res) => {
             throw new Error("User not found");
         }
 
-        const encryptedData = encryptToJson(user, process.env.ENCRYPT_KEY);
+
+        const education = await fetchEducation(user.education);
+
+        const experience = await fetchExperience(user.experience);
+
+        const posts = await fetchPost(user.posts);
+
+        const newUser = {
+            ...user._doc,
+            education,
+            experience,
+            posts
+        };
+
+        const encryptedData = encryptToJson(newUser, process.env.ENCRYPT_KEY);
 
         res.status(200).json({ success:true, data:encryptedData });
 

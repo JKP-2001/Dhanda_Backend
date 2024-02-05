@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+const mongoose = require("mongoose")
 
 const commentSchema = new mongoose.Schema({
     post_id:{
@@ -21,4 +21,4 @@ const commentSchema = new mongoose.Schema({
 
 const Comment = mongoose.model("comment",commentSchema)
 
-export {Comment}
+module.exports =  {Comment}

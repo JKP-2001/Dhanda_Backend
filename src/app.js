@@ -48,7 +48,7 @@ app.use((req, res, next) => {
 });
 
 //Adding Decrypt Middleware
-app.use(DecryptReq)
+
 
 const connect = async ()=>{
 
