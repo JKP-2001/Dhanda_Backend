@@ -43,6 +43,7 @@ async function interviewerListController(req, res) {
           allUsers = allUsers.sort((a,b)=>parseFloat(a.price)-parseFloat(b.price))
           break
       }
+  }
 
 
   const page = req.query.page ? req.query.page : 1
@@ -57,4 +58,4 @@ async function interviewerListController(req, res) {
 
 module.exports = {
   interviewerListController,
-};
+}

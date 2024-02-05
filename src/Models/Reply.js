@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+const mongoose = require("mongoose")
 
 const replySchema = new mongoose.Schema({
     comment_id:{
@@ -20,4 +20,6 @@ const replySchema = new mongoose.Schema({
 
 const Reply = mongoose.model("reply",replySchema)
 
-export {Reply}
+module.exports = {Reply}
+
+

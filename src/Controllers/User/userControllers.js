@@ -1,8 +1,11 @@
 const { Education } = require("../../Models/Education");
 const { Experience } = require("../../Models/Experience");
+const { Post } = require("../../Models/Posts");
 
 const { encryptToJson, decryptFromJson } = require("../../Utils/EncryptDecrypt");
 const { getPeople, getRoleFromReq } = require("../../helpers/HelperFunctions");
+
+
 
 
 const getUserData = async (req, res) => {
@@ -16,7 +19,21 @@ const getUserData = async (req, res) => {
             throw new Error("User not found");
         }
 
-        const encryptedData = encryptToJson(user, process.env.ENCRYPT_KEY);
+
+        const education = await Education.find({ _id: { $in: user.education } });
+
+        const experience = await Experience.find({ _id: { $in: user.experience } });
+
+        const posts = await Post.find({ _id: { $in: user.posts } });
+
+        const newUser = {
+            ...user._doc,
+            education,
+            experience,
+            posts
+        };
+
+        const encryptedData = encryptToJson(newUser, process.env.ENCRYPT_KEY);
 
         res.status(200).json({ success:true, data:encryptedData });
 
@@ -38,11 +55,14 @@ const onBoardingProcess = async (req, res) => {
             throw new Error("User not found");
         }
 
-        const encryptedData = req.body.payload;
+        
 
-        const decryptedData = decryptFromJson(encryptedData, process.env.ENCRYPT_KEY);
+       
+        const decryptedData = req.body;
 
-        const {bio, description, _} = decryptedData;
+      
+
+        const {bio, description} = decryptedData;
 
 
         const educationData = decryptedData.current_education;

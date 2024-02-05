@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+const mongoose = require("mongoose")
 
 const meetingSchema = new mongoose.Schema({
     title:{
@@ -24,4 +24,4 @@ const meetingSchema = new mongoose.Schema({
 
 const Meeting = mongoose.model("meeting",meetingSchema)
 
-export {Meeting}
+module.exports = {Meeting}

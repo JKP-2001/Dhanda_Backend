@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+const mongoose = require("mongoose")
 
 const feedbackSchema = new mongoose.Schema({
     comment:{
@@ -21,4 +21,4 @@ const feedbackSchema = new mongoose.Schema({
 
 const Feedback = mongoose.model("feedback",feedbackSchema)
 
-export {Feedback}
+module.exports =  {Feedback}
