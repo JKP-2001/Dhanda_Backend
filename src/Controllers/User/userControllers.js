@@ -1,15 +1,16 @@
 const { Education } = require("../../Models/Education");
 const { Experience } = require("../../Models/Experience");
-const {User} = require("../../Models/peoples/Interviewer");
 
 const { encryptToJson, decryptFromJson } = require("../../Utils/EncryptDecrypt");
+const { getPeople, getRoleFromReq } = require("../../helpers/HelperFunctions");
 
 
 const getUserData = async (req, res) => {
 
     try {
-
-        const user = await User.findOne({ email: req.userEmail }).select("-password");
+        const role = getRoleFromReq(req)
+        const people = getPeople(role)
+        const user = await people.findOne({ email: req.userEmail }).select("-password");
 
         if (!user) {
             throw new Error("User not found");
@@ -20,8 +21,8 @@ const getUserData = async (req, res) => {
         res.status(200).json({ success:true, data:encryptedData });
 
     } catch (error) {
-
-        res.status(400).json({ success, msg: error.toString() });
+        
+        res.status(400).json({ success:false, msg: error.toString() });
     }
 }
 
@@ -29,8 +30,9 @@ const getUserData = async (req, res) => {
 const onBoardingProcess = async (req, res) => {
 
     try {
-
-        const user = await User.findOne({ email: req.userEmail });
+        const role = getRoleFromReq(req)
+        const people = getPeople(role)
+        const user = await people.findOne({ email: req.userEmail });
 
         if (!user) {
             throw new Error("User not found");
@@ -40,7 +42,7 @@ const onBoardingProcess = async (req, res) => {
 
         const decryptedData = decryptFromJson(encryptedData, process.env.ENCRYPT_KEY);
 
-        const {bio, description, role} = decryptedData;
+        const {bio, description, _} = decryptedData;
 
 
         const educationData = decryptedData.current_education;
@@ -75,7 +77,7 @@ const onBoardingProcess = async (req, res) => {
 
 
         if(role!=="student"){
-            await User.findByIdAndUpdate(
+            await people.findByIdAndUpdate(
             user._id,
             {
                 bio: bio,
@@ -89,7 +91,7 @@ const onBoardingProcess = async (req, res) => {
             { new: true }
         )}
         else{
-            await User.findByIdAndUpdate(
+            await people.findByIdAndUpdate(
                 user._id,
                 {
                     bio: bio,

@@ -1,4 +1,4 @@
-const { User } = require("../../Models/peoples/Interviewer")
+const { User } = require("../../Models/peoples/Instructor")
 const { EncryptRes } = require("../../Utils/EncryptRes")
 const logger = require("../../helpers/Logger")
 const Paginator = require("../../helpers/Paginator")
