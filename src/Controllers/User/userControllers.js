@@ -1,66 +1,30 @@
 const { Education } = require("../../Models/Education");
 const { Experience } = require("../../Models/Experience");
-const {User} = require("../../Models/User");
-const {Post} = require("../../Models/Posts");
+const { Post } = require("../../Models/Posts");
 
 const { encryptToJson, decryptFromJson } = require("../../Utils/EncryptDecrypt");
+const { getPeople, getRoleFromReq } = require("../../helpers/HelperFunctions");
 
 
-const fetchEducation = async (eduArr) => {
-    try{
-
-        const education = await Education.find({ _id: { $in: eduArr } });
-
-        return education;
-    }catch(err){
-
-        throw new Error(err.toString());
-    }
-}
-
-const fetchExperience = async (expArr) => {
-    try{
-
-        const experience = await Experience.find({ _id: { $in: expArr } });
-
-        return experience;
-    }catch(err){
-
-        throw new Error(err.toString());
-    }
-}
-
-const fetchPost = async (postArr) => {
-
-    try {
-
-        const posts = await Post.find({ _id: { $in: postArr } });
-
-        return posts;
-
-    } catch (error) {
-
-        throw new Error(error.toString());
-    }
-}
 
 
 const getUserData = async (req, res) => {
 
     try {
-
-        const user = await User.findOne({ email: req.userEmail }).select("-password");
+        const role = getRoleFromReq(req)
+        const people = getPeople(role)
+        const user = await people.findOne({ email: req.userEmail }).select("-password");
 
         if (!user) {
             throw new Error("User not found");
         }
 
 
-        const education = await fetchEducation(user.education);
+        const education = await Education.find({ _id: { $in: user.education } });
 
-        const experience = await fetchExperience(user.experience);
+        const experience = await Experience.find({ _id: { $in: user.experience } });
 
-        const posts = await fetchPost(user.posts);
+        const posts = await Post.find({ _id: { $in: user.posts } });
 
         const newUser = {
             ...user._doc,
@@ -74,8 +38,8 @@ const getUserData = async (req, res) => {
         res.status(200).json({ success:true, data:encryptedData });
 
     } catch (error) {
-
-        res.status(400).json({ success, msg: error.toString() });
+        console.error('ERROR at getuserData :',error)
+        res.status(400).json({ success:false, msg: error.toString() });
     }
 }
 
@@ -83,18 +47,22 @@ const getUserData = async (req, res) => {
 const onBoardingProcess = async (req, res) => {
 
     try {
-
-        const user = await User.findOne({ email: req.userEmail });
+        const role = getRoleFromReq(req)
+        const people = getPeople(role)
+        const user = await people.findOne({ email: req.userEmail });
 
         if (!user) {
             throw new Error("User not found");
         }
 
-        const encryptedData = req.body.payload;
+        
 
-        const decryptedData = decryptFromJson(encryptedData, process.env.ENCRYPT_KEY);
+       
+        const decryptedData = req.body;
 
-        const {bio, description, role} = decryptedData;
+      
+
+        const {bio, description} = decryptedData;
 
 
         const educationData = decryptedData.current_education;
@@ -129,7 +97,7 @@ const onBoardingProcess = async (req, res) => {
 
 
         if(role!=="student"){
-            await User.findByIdAndUpdate(
+            await people.findByIdAndUpdate(
             user._id,
             {
                 bio: bio,
@@ -143,7 +111,7 @@ const onBoardingProcess = async (req, res) => {
             { new: true }
         )}
         else{
-            await User.findByIdAndUpdate(
+            await people.findByIdAndUpdate(
                 user._id,
                 {
                     bio: bio,

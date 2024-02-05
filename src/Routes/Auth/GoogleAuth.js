@@ -1,6 +1,6 @@
 const passport = require('passport');
 const ensureAuthenticated = require('../../Middlewares/ensureAuthenticated');
-const { User } = require('../../Models/User');
+
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
@@ -22,15 +22,9 @@ passport.use(
   async function (req, accessToken, refreshToken, profile, done) {
     try {
       
-      const user = await User.findOne({ email: profile.emails[0].value });
+      console.log({ profile });
 
-      if (user) {
-        return done(null, user);
-      }
-
-      const newUser = await User.create({
-        
-      })
+      
 
       return done(null, profile);
     } catch (error) {

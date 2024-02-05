@@ -10,10 +10,6 @@ const { decryptFromJson } = require("../Utils/EncryptDecrypt");
  */
 
 async function DecryptReq(req,res,next){
-    if (!req.body || !req.body.hasOwnProperty('payload')){
-        next()
-        return
-    }
     if (req.body && req.body.hasOwnProperty('payload')){
         try {
         const decryptedReqBody = decryptFromJson(req.body.payload) 

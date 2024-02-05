@@ -1,5 +1,5 @@
-const { default: mongoose, mongo } = require("mongoose")
-const { User } = require("../../Models/User")
+const { default: mongoose, mongo } = require("mongoose");
+const { Instructor } = require("../../Models/peoples/Instructor");
 
 
 
@@ -19,7 +19,7 @@ async function InterviewerProfileController(req, res) {
             res.status(400).json('userId query parameter is not a valid ObjectId')
             throw e
         }
-        let userInfo = await User
+        let userInfo = await Instructor 
             .aggregate()
             .match({ _id: userIdObject })
             .project({

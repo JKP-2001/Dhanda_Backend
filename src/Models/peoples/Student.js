@@ -22,12 +22,8 @@ const userSchema = new mongoose.Schema({
         required:true,
     },
     password:{
-        type:String
-    },
-    role:{
         type:String,
-        enum:['student','instructor'],
-        required:true
+        required:true,
     },
     meetingScheduled:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"meeting"},
@@ -75,10 +71,6 @@ const userSchema = new mongoose.Schema({
     followings:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"user"},
     ],
-    availableTimeslots:[{
-        type:String,
-        default:""
-    }],
     createdAt:{
         type:Date,
         default:Date.now   
@@ -90,36 +82,13 @@ const userSchema = new mongoose.Schema({
         type:String,
         default:''
     },
-    //only for tutor
-    rating:{
-        type:Number,
-        min:0,
-        max:5,
-        default:0
-    },
-    //only for tutor
-    interviewsTaken:{
+    interviewsGiven:{
         type:Number,
         validate:{
             validator:Number.isInteger,
             message:'It must be integer'
         },
         default:0
-    },
-    //only for tutor
-    price:{
-        type:Number,
-        default:0
-    },
-    //only for tutors, in minutes
-    interviewDuration:{
-        type:Number,
-        default:45
-    },
-    //only for tutors
-    category :{
-        type:String,
-        enum:['sde','dataScience', 'analyst']
     },
 
     passwordChangeRequest:{
@@ -133,6 +102,6 @@ const userSchema = new mongoose.Schema({
     }
 })
 
-const User = mongoose.model("user",userSchema)
+const Student = mongoose.model("student",userSchema)
 
-module.exports= {User}
+module.exports= {Student}
