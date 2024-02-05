@@ -195,13 +195,15 @@ const Signin = async (req, res) => {
             createdAt: Date.now()
         }
 
-        const unique = encryptToJson(unique_data, process.env.ENCRYPT_KEY);
+        const unique = encryptToJson(unique_data, process.env.ENCRYPT_KEY,true);
 
         res.status(200).json(EncryptRes({ success: true, msg: "Login successful", unique}));
+        // res.status(200).json({success: true, msg: "Login successful", unique});
 
     } catch (err) {
         console.error('Error at Siginin controller :', err)
-        res.status(400).json(EncryptRes({ success: false, msg: err.toString() }));
+        // res.status(400).json(EncryptRes({ success: false, msg: err.toString() }));
+        res.status(400).json({ success: false, msg: err.toString() });
     }
 }
 

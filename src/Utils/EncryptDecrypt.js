@@ -8,8 +8,14 @@ const CryptoJS = require('crypto-js');
  * @return {string} The encrypted JSON string
  */
 
-function encryptToJson(data, key=process.env.ENCRYPT_KEY) {
+function encryptToJson(data, key=process.env.ENCRYPT_KEY, token=false) {
   try {
+    if(process.env.DEVELOPMENT=="true" && token==false){
+      // const uniqueJson = JSON.stringify(data["unique_data"])
+      // console.log("unique is = ",data["unique_data"])
+      // data["unique_data"] = CryptoJS.AES.encrypt(uniqueJson, key).toString();
+      return data
+    }
     // Convert JSON data to a string
     const jsonString = JSON.stringify(data);
 

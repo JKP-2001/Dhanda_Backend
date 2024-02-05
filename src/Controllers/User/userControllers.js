@@ -17,7 +17,8 @@ const getUserData = async (req, res) => {
 
         const encryptedData = encryptToJson(user, process.env.ENCRYPT_KEY);
 
-        res.status(200).json({ success:true, data:encryptedData });
+        // res.status(200).json({ success:true, data:encryptedData });
+        res.status(200).json({ success:true, data:user });
 
     } catch (error) {
 
@@ -35,6 +36,7 @@ const onBoardingProcess = async (req, res) => {
         if (!user) {
             throw new Error("User not found");
         }
+        
 
         const encryptedData = req.body.payload;
 
@@ -116,6 +118,9 @@ const getAllUserforInterviewer = async (req,res) => {
         if(!user){
             throw new Error("User not found")
         }
+        if(user.isBan){
+            throw new Error("User had been banned")
+        }
         const userIds = user.interviewsTaken;
         const result = userIds.map(async (userId)=>{
             return await User.findOne({_id:result})
@@ -160,4 +165,4 @@ const editUser = async(req, res)=>{
 }
 
 
-module.exports = { getUserData, onBoardingProcess, getAllUserforInterviewer, banUser };
+module.exports = { getUserData, onBoardingProcess, getAllUserforInterviewer, banUser, unBanUser };
