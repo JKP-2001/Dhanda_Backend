@@ -28,7 +28,7 @@ const Signup = async (req, res) => {
         
 
         const role = DATA.role;
-        console.log('The data is ', DATA)
+ 
 
         if (middleName && !isValidName(middleName)) {
             throw new Error("Invalid name");
@@ -92,6 +92,8 @@ const Signup = async (req, res) => {
 
         const name = firstName + " " + (middleName?middleName:"") + " " + lastName
 
+      
+
         await sendMail(email, "Verify Email", name,"", otp, "Signup");
 
         const encryptedData = encryptToJson(data)
@@ -117,7 +119,7 @@ const verifyEmail = async (req, res) => {
         const decryptedData = decryptFromJson(encryptedData, process.env.ENCRYPT_KEY);
 
         const { main, otp, createdAt} = decryptedData;
-        // const {main,otp,createdAt} = req.body
+
 
         const currentTime = Date.now();
 
@@ -152,12 +154,10 @@ const Signin = async (req, res) => {
 
     try {
 
-        // const payload = req.body.payload;
-
-        // const DATA = decryptFromJson(payload, process.env.ENCRYPT_KEY);
+       
 
         const DATA = req.body
-        console.log('The dat at signin controller is :', DATA)
+    
         const email = DATA.email;
 
         const password = DATA.password;
@@ -185,7 +185,7 @@ const Signin = async (req, res) => {
 
         const user = await User.findOne({ email }).select("-password ");
 
-        // const encryptedData = encryptToJson(user, process.env.ENCRYPT_KEY);
+   
         
         const unique_data = {
             email:user.email,
@@ -205,8 +205,7 @@ const Signin = async (req, res) => {
 
 const passwordChangeRequest = async (req, res) => {
     try {
-        // const payload = req.body.payload;
-        // const decryptedData = decryptFromJson(payload, process.env.ENCRYPT_KEY);
+       
         const decryptedData = req.body
 
         const email = decryptedData.email;
