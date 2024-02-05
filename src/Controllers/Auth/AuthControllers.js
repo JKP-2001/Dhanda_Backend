@@ -91,6 +91,8 @@ const Signup = async (req, res) => {
 
         const name = firstName + " " + (middleName?middleName:"") + " " + lastName
 
+      
+
         await sendMail(email, "Verify Email", name,"", otp, "Signup");
 
         const encryptedData = encryptToJson(data)
