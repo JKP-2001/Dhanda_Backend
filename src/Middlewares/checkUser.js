@@ -1,7 +1,7 @@
 
 const mongoose = require("mongoose")
 
-const {User} = require("../Models/User")
+const {User} = require("../Models/peoples/Interviewer")
 
 const { decryptFromJson } = require("../Utils/EncryptDecrypt");
 

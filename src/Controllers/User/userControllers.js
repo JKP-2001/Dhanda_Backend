@@ -1,6 +1,6 @@
 const { Education } = require("../../Models/Education");
 const { Experience } = require("../../Models/Experience");
-const {User} = require("../../Models/User");
+const {User} = require("../../Models/peoples/Interviewer");
 
 const { encryptToJson, decryptFromJson } = require("../../Utils/EncryptDecrypt");
 

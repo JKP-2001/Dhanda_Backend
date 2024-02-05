@@ -1,5 +1,5 @@
 const { default: mongoose, mongo } = require("mongoose")
-const { User } = require("../../Models/User")
+const { User } = require("../../Models/peoples/Interviewer")
 
 
 
