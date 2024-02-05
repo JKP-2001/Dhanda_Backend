@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:true,
     },
+    isBan:{
+        type:Boolean,
+        default:false
+    },
     role:{
         type:String,
         enum:['student','instructor'],
@@ -99,14 +103,7 @@ const userSchema = new mongoose.Schema({
         default:0
     },
     //only for tutor
-    interviewsTaken:{
-        type:Number,
-        validate:{
-            validator:Number.isInteger,
-            message:'It must be integer'
-        },
-        default:0
-    },
+    interviewsTaken:[{type:mongoose.Schema.Types.ObjectId, default:[]}],
     //only for tutor
     price:{
         type:Number,

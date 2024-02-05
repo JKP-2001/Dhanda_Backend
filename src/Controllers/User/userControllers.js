@@ -110,4 +110,39 @@ const onBoardingProcess = async (req, res) => {
     }
 }
 
-module.exports = { getUserData, onBoardingProcess };
+const getAllUserforInterviewer = async (req,res) => {
+    try{
+        const user = await User.findOne({email:req.userEmail});
+        if(!user){
+            throw new Error("User not found")
+        }
+        const userIds = user.interviewsTaken;
+        const result = userIds.map(async (userId)=>{
+            return await User.findOne({_id:result})
+        })
+        res.status(200).send(result)
+    }catch(error){
+        res.status(400).json({success:false, msg:error.toString()})
+    }
+}
+
+const banUser = async(req, res)=>{
+    try{
+        const user = await User.findOne({email:req.userEmail})
+        if(!user){
+            throw new Error("User not found")
+        }
+        const result = await User.findOneAndUpdate({email:req.userEmail},{$set:{isBan:true}});
+        res.status(200).json({ success: true, msg: "User has been banned" })
+    }
+    catch(error){
+        res.status(400).json({success:false, msg:error.toString()})
+    }
+}
+
+const editUser = async(req, res)=>{
+
+}
+
+
+module.exports = { getUserData, onBoardingProcess, getAllUserforInterviewer, banUser };
