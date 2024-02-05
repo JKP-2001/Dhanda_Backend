@@ -1,4 +1,4 @@
-const { User } = require("../../Models/peoples/Instructor")
+const { Instructor } = require("../../Models/peoples/Instructor")
 const { EncryptRes } = require("../../Utils/EncryptRes")
 const logger = require("../../helpers/Logger")
 const Paginator = require("../../helpers/Paginator")
@@ -18,7 +18,7 @@ async function interviewerListController(req,res){
 
     const category = req.query.category === undefined || req.query.category == 'all' ? {} : {category:req.query.category}
 
-    let allUsers = await User.find({role:'instructor',...category},'firstName lastName headline rating interviewsTaken price interviewDuration profilePic')
+    let allUsers = await Instructor.find({...category},'firstName lastName headline rating interviewsTaken price interviewDuration profilePic')
     // allUsers = allUsers.filter((val,idx)=>val.role == "tutor")
     switch (sortBy){
         case BY_RATING:{

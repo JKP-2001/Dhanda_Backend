@@ -21,7 +21,7 @@ const getUserData = async (req, res) => {
         res.status(200).json({ success:true, data:encryptedData });
 
     } catch (error) {
-        
+        console.error('ERROR at getuserData :',error)
         res.status(400).json({ success:false, msg: error.toString() });
     }
 }
