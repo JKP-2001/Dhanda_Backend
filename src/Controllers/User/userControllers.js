@@ -120,7 +120,8 @@ const getAllUserforInterviewer = async (req,res) => {
         const result = userIds.map(async (userId)=>{
             return await User.findOne({_id:result})
         })
-        res.status(200).send(result)
+        const encryptedData = encryptToJson(result, process.env.ENCRYPT_KEY);
+        res.status(200).json({success:true, data:encryptedData})
     }catch(error){
         res.status(400).json({success:false, msg:error.toString()})
     }
@@ -134,6 +135,20 @@ const banUser = async(req, res)=>{
         }
         const result = await User.findOneAndUpdate({email:req.userEmail},{$set:{isBan:true}});
         res.status(200).json({ success: true, msg: "User has been banned" })
+    }
+    catch(error){
+        res.status(400).json({success:false, msg:error.toString()})
+    }
+}
+
+const unBanUser = async(req, res)=>{
+    try{
+        const user = await User.findOne({email:req.userEmail})
+        if(!user){
+            throw new Error("User not found")
+        }
+        const result = await User.findOneAndUpdate({email:req.userEmail},{$set:{isBan:false}});
+        res.status(200).json({ success: true, msg: "User has been unBanned" })
     }
     catch(error){
         res.status(400).json({success:false, msg:error.toString()})
