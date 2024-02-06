@@ -1,4 +1,5 @@
 import mongoose from "mongoose"
+import { MEETING_COMPLETED, MEETING_MISSED, MEETING_PENDING, MEETING_STATUS } from "../Utils/Constants"
 
 const meetingSchema = new mongoose.Schema({
     title:{
@@ -19,6 +20,11 @@ const meetingSchema = new mongoose.Schema({
     meeting_link:{
         type:String,
         required:true
+    },
+    status:{
+        type: String,
+        enum : [MEETING_COMPLETED,MEETING_MISSED,MEETING_PENDING],
+        default: MEETING_PENDING
     }
 })
 
