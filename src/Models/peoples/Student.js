@@ -3,7 +3,6 @@ const mongoose = require('mongoose')
 const userSchema = new mongoose.Schema({
     username:{
         type:String,
-        required:true,
     },
     firstName:{
         type:String,
@@ -23,7 +22,6 @@ const userSchema = new mongoose.Schema({
     },
     password:{
         type:String,
-        required:true,
     },
     meetingScheduled:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"meeting"},
@@ -99,6 +97,10 @@ const userSchema = new mongoose.Schema({
     onBoarding:{
         type:Boolean,
         default:false
+    },
+    googleId:{
+        type:String,
+        default:""
     }
 })
 

@@ -2,8 +2,7 @@ const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema({
     username:{
-        type:String,
-        required:true,
+        type:String
     },
     firstName:{
         type:String,
@@ -130,6 +129,10 @@ const userSchema = new mongoose.Schema({
     onBoarding:{
         type:Boolean,
         default:false
+    },
+    googleId:{
+        type:String,
+        default:""
     }
 })
 
