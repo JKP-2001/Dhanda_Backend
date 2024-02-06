@@ -1,24 +1,28 @@
 const mongoose = require("mongoose")
 
-const commentSchema = new mongoose.Schema({
-    post_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"post"
+const repeatingSlots = new mongoose.Schema({
+    startDate:{
+        type:Date,
+        required:true
     },
-    creationDateAndTime:{
-        type:Date
+    startTime:{
+        type:Date,
+        required:true
     },
-    replies:[{
-        type:mongoose.Schema.Types.ObjectId,
+    meetEndTime:{
+        type:Date,
+        required:true
+    },
+    bookings:[{
+        type:Date,
         default:[],
-        ref:"reply"
     }],
-    author_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"user"
-    }    
+    suspended:[{
+        type:Date,
+        default:[]
+    }]
 })
 
-const Comment = mongoose.model("comment",commentSchema)
+const RepeatingSlots = mongoose.model("repeatingSlots",repeatingSlots)
 
-module.exports =  {Comment}
+module.exports =  {RepeatingSlots}
