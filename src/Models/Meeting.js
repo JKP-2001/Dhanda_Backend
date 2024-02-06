@@ -1,6 +1,5 @@
 const mongoose = require("mongoose")
-import mongoose from "mongoose"
-import { MEETING_COMPLETED, MEETING_MISSED, MEETING_PENDING, MEETING_STATUS } from "../Utils/Constants"
+const { MEETING_COMPLETED, MEETING_MISSED, MEETING_PENDING, REFUND_COMPLETED, UNDER_REFUND, PAID_TO_DHANDA, PAID_TO_INSTRUCTOR, MEETING_CANCELLED_STUDENT, MEETING_CANCELLED_INSTRUCTOR} = require("../Utils/Constants")
 
 const meetingSchema = new mongoose.Schema({
     title:{
@@ -15,17 +14,48 @@ const meetingSchema = new mongoose.Schema({
         type:Date,
         required:true
     },
-    participant:[
-        {type:mongoose.Schema.Types.ObjectId, default:[], ref:"user"},
-    ],
-    meeting_link:{
+    instructorId:{
+        type:mongoose.Schema.Types.ObjectId, 
+        ref:"instructor",
+        required:true
+    },
+    studentId:{
+        type:mongoose.Schema.Types.ObjectId, 
+        ref:"student",
+        required:true
+    },
+    meetingLink:{
         type:String,
         required:true
     },
-    status:{
+    meetingStatus:{
         type: String,
-        enum : [MEETING_COMPLETED,MEETING_MISSED,MEETING_PENDING],
+        enum : [MEETING_COMPLETED ,MEETING_MISSED,MEETING_PENDING, MEETING_CANCELLED_STUDENT, MEETING_CANCELLED_INSTRUCTOR],
         default: MEETING_PENDING
+    },
+    paymentStatus:{
+        type:String,
+        enum: [REFUND_COMPLETED, UNDER_REFUND, PAID_TO_DHANDA, PAID_TO_INSTRUCTOR],
+        default:PAID_TO_DHANDA
+    },
+    actualStartTime:{
+        type:Date,
+    },
+    actualEndTime:{
+        type:Date,
+    },
+    studentDhandaPaymentId:{
+        type:String,
+        required:true
+    },
+    DhandaInstructorPaymentId:{
+        type:String
+    },
+    Feedback:{
+        type:String,
+    },
+    issuedRaisedByUser:{
+        type:String
     }
 })
 
