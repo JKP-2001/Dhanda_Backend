@@ -1,3 +1,4 @@
+const mongoose = require("mongoose")
 import mongoose from "mongoose"
 import { MEETING_COMPLETED, MEETING_MISSED, MEETING_PENDING, MEETING_STATUS } from "../Utils/Constants"
 
@@ -30,4 +31,4 @@ const meetingSchema = new mongoose.Schema({
 
 const Meeting = mongoose.model("meeting",meetingSchema)
 
-export {Meeting}
+module.exports = {Meeting}

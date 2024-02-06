@@ -1,5 +1,5 @@
-const { default: mongoose, mongo } = require("mongoose")
-const { User } = require("../../Models/User")
+const { default: mongoose, mongo } = require("mongoose");
+const { Instructor } = require("../../Models/peoples/Instructor");
 
 
 
@@ -16,10 +16,10 @@ async function InterviewerProfileController(req, res) {
             userIdObject = new mongoose.Types.ObjectId(userId)
         }
         catch(e){
-            res.status(400).send('userId query parameter is not a valid ObjectId')
+            res.status(400).json('userId query parameter is not a valid ObjectId')
             throw e
         }
-        let userInfo = await User
+        let userInfo = await Instructor 
             .aggregate()
             .match({ _id: userIdObject })
             .project({
@@ -59,16 +59,14 @@ async function InterviewerProfileController(req, res) {
             })
             .exec()
         userInfo = userInfo[0] 
-        //The only reason posts count is passed along with entire posts is because, if future we may remove posts from
-        //this api into a seperate api for reducing load
         
-        console.log('userInfo :', userInfo)
+        
         if (!userInfo) {
             const errorMessage = `User with userId ${userId} is not present on database`
-            res.status(404).send(errorMessage)
+            res.status(404).json(errorMessage)
             throw errorMessage
         }
-        res.status(200).send(userInfo)
+        res.status(200).json(userInfo)
     }
     catch (err) {
         console.error('ERROR: At InterviewProfileController function. \n', err, '\n')

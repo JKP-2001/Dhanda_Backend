@@ -3,7 +3,6 @@ const mongoose = require('mongoose')
 const userSchema = new mongoose.Schema({
     username:{
         type:String,
-        required:true,
     },
     firstName:{
         type:String,
@@ -23,16 +22,6 @@ const userSchema = new mongoose.Schema({
     },
     password:{
         type:String,
-        required:true,
-    },
-    isBan:{
-        type:Boolean,
-        default:false
-    },
-    role:{
-        type:String,
-        enum:['student','instructor'],
-        required:true
     },
     meetingScheduled:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"meeting"},
@@ -80,10 +69,6 @@ const userSchema = new mongoose.Schema({
     followings:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"user"},
     ],
-    availableTimeslots:[{
-        type:String,
-        default:""
-    }],
     createdAt:{
         type:Date,
         default:Date.now   
@@ -95,29 +80,13 @@ const userSchema = new mongoose.Schema({
         type:String,
         default:''
     },
-    //only for tutor
-    rating:{
+    interviewsGiven:{
         type:Number,
-        min:0,
-        max:5,
+        validate:{
+            validator:Number.isInteger,
+            message:'It must be integer'
+        },
         default:0
-    },
-    //only for tutor
-    interviewsTaken:[{type:mongoose.Schema.Types.ObjectId, default:[]}],
-    //only for tutor
-    price:{
-        type:Number,
-        default:0
-    },
-    //only for tutors, in minutes
-    interviewDuration:{
-        type:Number,
-        default:45
-    },
-    //only for tutors
-    category :{
-        type:String,
-        enum:['sde','dataScience', 'analyst']
     },
 
     passwordChangeRequest:{
@@ -128,9 +97,21 @@ const userSchema = new mongoose.Schema({
     onBoarding:{
         type:Boolean,
         default:false
+    },
+    socialLoginId:{
+        type:String,
+        default:""
+    },
+    loginProvider:{
+        type:String,
+        default:""
+    },
+    role:{
+        type:String,
+        required:true
     }
 })
 
-const User = mongoose.model("user",userSchema)
+const Student = mongoose.model("student",userSchema)
 
-module.exports= {User}
+module.exports= {Student}

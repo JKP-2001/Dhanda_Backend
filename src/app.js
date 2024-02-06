@@ -1,14 +1,19 @@
 require("dotenv").config();
 
 const express = require("express");
+const cookieParser = require('cookie-parser');
+
 const app = express();
 const mongoose = require("mongoose");
 const methodOverride = require("method-override");
 const morgan = require("morgan");
 const interviwerRouter = require("./Routes/Interviewers");
 const { getCurrentDate } = require("./Utils/SendMail");
+
 const authRouter = require("./Routes/Auth/AuthRoutes");
 const userRouter = require("./Routes/User/userRoutes");
+const googleAuthRouter = require("./Routes/Auth/GoogleAuth");
+
 const DecryptReq = require("./Middlewares/DecryptReq");
 const { decryptFromJson } = require("./Utils/EncryptDecrypt");
 
@@ -18,12 +23,44 @@ const DB_URI = process.env.DB_URI;
 
 const BASE_URL = process.env.BASE_URL;
 
+const passport = require("passport");
+
+const session = require('express-session');
+const microsoftAuthRouter = require("./Routes/Auth/MicrosoftAuth");
+
+
+
+
+
 app.use(express.json());
 app.use(methodOverride());
 app.use(morgan("dev"));
 app.use("/uploads", express.static("uploads"));
+app.use(cookieParser());
 
-// enable CORSn
+
+app.use(session({
+  secret: 'hello google',
+  resave: false,
+  saveUninitialized: true
+}));
+
+app.use(passport.initialize());
+
+
+passport.serializeUser(function (user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function (obj, done) {
+  done(null, obj);
+});
+
+
+
+
+
+
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Credentials", "true");
@@ -49,7 +86,7 @@ app.use((req, res, next) => {
   next();
 });
 
-//Adding Decrypt Middleware
+
 app.use(DecryptReq);
 
 const connect = async () => {
@@ -67,16 +104,24 @@ app.use(BASE_URL + "auth", authRouter);
 
 app.use(BASE_URL + "user", userRouter);
 
-app.listen(PORT, (err) => {
+app.use(googleAuthRouter);
+
+app.use(microsoftAuthRouter);
+
+
+
+app.listen(PORT, async (err) => {
   const temp = getCurrentDate();
 
-  
 
   if (err) {
     console.log(err.toString());
+
   } else {
-    connect();
+    
     console.log(`server started on ${temp}`);
+    console.log("DB Connection Started");
+    await connect();
     console.log(`server started on port ${PORT}`);
   }
 });

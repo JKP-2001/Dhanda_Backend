@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon src/app.js"
@@ -12,9 +13,11 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "express-session": "^1.18.0",
     "fs": "^0.0.1-security",
     "handlebars": "^4.7.8",
     "json-web-token": "^3.2.0",
@@ -23,6 +26,9 @@
     "morgan": "^1.10.0",
     "nodemailer": "^6.9.8",
     "nodemon": "^3.0.2",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-microsoft": "^1.0.0",
     "path": "^0.12.7"
   }
 }
