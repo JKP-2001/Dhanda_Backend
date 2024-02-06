@@ -1,6 +1,8 @@
 require("dotenv").config();
 
 const express = require("express");
+const cookieParser = require('cookie-parser');
+
 const app = express();
 const mongoose = require("mongoose");
 const methodOverride = require("method-override");
@@ -23,7 +25,8 @@ const BASE_URL = process.env.BASE_URL;
 
 const passport = require("passport");
 
-const session = require('express-session')
+const session = require('express-session');
+const microsoftAuthRouter = require("./Routes/Auth/MicrosoftAuth");
 
 
 
@@ -33,6 +36,7 @@ app.use(express.json());
 app.use(methodOverride());
 app.use(morgan("dev"));
 app.use("/uploads", express.static("uploads"));
+app.use(cookieParser());
 
 
 app.use(session({
@@ -101,6 +105,8 @@ app.use(BASE_URL + "auth", authRouter);
 app.use(BASE_URL + "user", userRouter);
 
 app.use(googleAuthRouter);
+
+app.use(microsoftAuthRouter);
 
 
 

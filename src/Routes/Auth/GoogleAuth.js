@@ -63,7 +63,10 @@ passport.use(
           if (user.googleId === profile.id) {
             return done(null, profile);
           }
-          throw new Error("User already exists");
+          req.nonSocialUser = true;
+          const error = new Error("Non-social user found");
+          error.isNonSocialUser = true;
+          return done(error);
         }
 
         const name = profile._json.given_name;
@@ -76,7 +79,8 @@ passport.use(
           middleName,
           lastName: profile._json.family_name,
           role: ROLE,
-          googleId: profile.id,
+          socialLoginId: profile.id,
+          loginProvider:"google",
         }
 
         const newUser = await people.create(newDATA);
@@ -85,9 +89,11 @@ passport.use(
           throw new Error("User not created");
         }
 
+        
+
         return done(null, profile);
       } catch (error) {
-       
+        console.log({error});
         return done(error);
       }
     })
@@ -101,6 +107,10 @@ googleAuthRouter.get('/auth/google/callback',
   async function (req, res) {
     if (req.ANTIUSER) {
       return res.redirect(`http://localhost:3000/google/auth/callback?status=antiuser`);
+    }
+
+    if(req.nonSocialUser){
+      return res.redirect(`http://localhost:3000/google/auth/callback?status=nonSocialUser`);
     }
 
     const unique_data = {
@@ -120,12 +130,18 @@ googleAuthRouter.get('/auth/google/callback',
 
 googleAuthRouter.get('/auth/google/logout', (req, res, next) => {
 
-
- 
   
-     
-      res.clearCookie("authToken");
+
       try {
+        const authToken = req.cookies.authToken;
+        console.log({authToken})
+
+        if(!authToken){
+          throw new Error("authToken not found");
+        }
+
+        res.clearCookie('authToken');
+
         req.logout(function (err) {
           if (err) {
             res.status(400).json({ success: false, msg: err.toString() });
@@ -135,10 +151,6 @@ googleAuthRouter.get('/auth/google/logout', (req, res, next) => {
         res.status(400).json({ success: false, msg: err.toString() });
       }
 
-      res.status(200).json({ success: true, msg: "Logged out successfully" });
-    
-
-
 });
 
 // Error handling middleware
@@ -146,6 +158,10 @@ googleAuthRouter.use((err, req, res, next) => {
   if (err.isAntiUser) {
     return res.redirect(`http://localhost:3000/google/auth/callback?status=antiuser`);
   } 
+
+  if(err.isNonSocialUser){
+    return res.redirect(`http://localhost:3000/google/auth/callback?status=nonSocialUser`);
+  }
 });
 
 module.exports = googleAuthRouter;
