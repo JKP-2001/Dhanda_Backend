@@ -37,12 +37,12 @@ app.use("/uploads", express.static("uploads"));
 
 app.use(session({
   secret: 'hello google',
-  resave: true,
+  resave: false,
   saveUninitialized: true
 }));
 
 app.use(passport.initialize());
-app.use(passport.session());
+
 
 passport.serializeUser(function (user, done) {
   done(null, user);
