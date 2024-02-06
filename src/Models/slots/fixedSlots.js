@@ -1,24 +1,24 @@
 const mongoose = require("mongoose")
 
-const commentSchema = new mongoose.Schema({
-    post_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"post"
+const fixedSlotSchema = new mongoose.Schema({
+    startTime:{
+        type:Date,
+        reuqired:true
     },
-    creationDateAndTime:{
-        type:Date
+    endTime:{
+        type:Date,
+        required:true
     },
-    replies:[{
-        type:mongoose.Schema.Types.ObjectId,
-        default:[],
-        ref:"reply"
-    }],
-    author_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"user"
-    }    
+    isBooked:{
+        type:Boolean,
+        default:false
+    },
+    suspended:{
+        type:Boolean,
+        default:false
+    } 
 })
 
-const Comment = mongoose.model("comment",commentSchema)
+const FixedSlot = mongoose.model("fixedSlots",fixedSlotSchema)
 
-module.exports =  {Comment}
+module.exports =  {FixedSlot}
