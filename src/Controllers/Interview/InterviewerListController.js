@@ -50,7 +50,7 @@ async function interviewerListController(req, res) {
   const limit = req.query.limit ? parseInt(req.query.limit) : allUsers.length;
   // logger('array ', allUsers)
   const paginatedResult = Paginator(allUsers, page, limit);
-  logger(paginatedResult)
+  
   const encryptedResult = EncryptRes(paginatedResult)
   res.status(200).json(encryptedResult)
 
