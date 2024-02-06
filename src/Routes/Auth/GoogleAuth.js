@@ -57,10 +57,11 @@ passport.use(
           return done(error);
         }
 
-       
+
 
         if (user) {
-          if (user.googleId === profile.id) {
+          
+          if (user.socialLoginId === profile.id) {
             return done(null, profile);
           }
           req.nonSocialUser = true;
@@ -71,16 +72,17 @@ passport.use(
 
         const name = profile._json.given_name;
         const firstName = name.split(" ")[0];
-        const middleName = name.split(" ")[1];
+        const lastName = name.split(" ")[2] ? name.split(" ")[2] : name.split(" ")[1] ? name.split(" ")[1] : " ";
+        const middleName = name.split(" ")[2] ? name.split(" ")[1] : " ";
 
         const newDATA = {
           email,
           firstName,
           middleName,
-          lastName: profile._json.family_name,
+          lastName,
           role: ROLE,
           socialLoginId: profile.id,
-          loginProvider:"google",
+          loginProvider: "google",
         }
 
         const newUser = await people.create(newDATA);
@@ -89,11 +91,11 @@ passport.use(
           throw new Error("User not created");
         }
 
-        
+
 
         return done(null, profile);
       } catch (error) {
-        console.log({error});
+        console.log({ error });
         return done(error);
       }
     })
@@ -109,7 +111,7 @@ googleAuthRouter.get('/auth/google/callback',
       return res.redirect(`http://localhost:3000/google/auth/callback?status=antiuser`);
     }
 
-    if(req.nonSocialUser){
+    if (req.nonSocialUser) {
       return res.redirect(`http://localhost:3000/google/auth/callback?status=nonSocialUser`);
     }
 
@@ -130,26 +132,26 @@ googleAuthRouter.get('/auth/google/callback',
 
 googleAuthRouter.get('/auth/google/logout', (req, res, next) => {
 
-  
 
-      try {
-        const authToken = req.cookies.authToken;
-        console.log({authToken})
 
-        if(!authToken){
-          throw new Error("authToken not found");
-        }
+  try {
+    const authToken = req.cookies.authToken;
+    console.log({ authToken })
 
-        res.clearCookie('authToken');
+    if (!authToken) {
+      throw new Error("authToken not found");
+    }
 
-        req.logout(function (err) {
-          if (err) {
-            res.status(400).json({ success: false, msg: err.toString() });
-          }
-        });
-      } catch (err) {
+    res.clearCookie('authToken');
+
+    req.logout(function (err) {
+      if (err) {
         res.status(400).json({ success: false, msg: err.toString() });
       }
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, msg: err.toString() });
+  }
 
 });
 
@@ -157,9 +159,9 @@ googleAuthRouter.get('/auth/google/logout', (req, res, next) => {
 googleAuthRouter.use((err, req, res, next) => {
   if (err.isAntiUser) {
     return res.redirect(`http://localhost:3000/google/auth/callback?status=antiuser`);
-  } 
+  }
 
-  if(err.isNonSocialUser){
+  if (err.isNonSocialUser) {
     return res.redirect(`http://localhost:3000/google/auth/callback?status=nonSocialUser`);
   }
 });

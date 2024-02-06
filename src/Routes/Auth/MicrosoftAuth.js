@@ -74,8 +74,8 @@ passport.use(new MicrosoftStrategy({
 
             const name = profile._json.displayName;
             const firstName = name.split(" ")[0];
-            const lastName = name.split(" ")[2] ? name.split(" ")[2] : name.split(" ")[1] ? name.split(" ")[1] : "";
-            const middleName = name.split(" ")[2] ? name.split(" ")[1] : "";
+            const lastName = name.split(" ")[2] ? name.split(" ")[2] : name.split(" ")[1] ? name.split(" ")[1] : " ";
+            const middleName = name.split(" ")[2] ? name.split(" ")[1] : " ";
 
             const newDATA = {
                 email,
