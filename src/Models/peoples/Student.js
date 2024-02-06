@@ -98,9 +98,17 @@ const userSchema = new mongoose.Schema({
         type:Boolean,
         default:false
     },
-    googleId:{
+    socialLoginId:{
         type:String,
         default:""
+    },
+    loginProvider:{
+        type:String,
+        default:""
+    },
+    role:{
+        type:String,
+        required:true
     }
 })
 
