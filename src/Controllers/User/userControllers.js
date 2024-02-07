@@ -77,7 +77,8 @@ const onBoardingProcess = async (req, res) => {
             onGoing: educationData.onGoing,
             description: educationData.description,
             degree: educationData.degree,
-            branch: educationData.branch
+            branch: educationData.branch,
+            refModel: role
         });
 
         let newExperience = null;
@@ -90,7 +91,8 @@ const onBoardingProcess = async (req, res) => {
                 onGoing: currentJob.onGoing,
                 endDate: currentJob.endDate?currentJob.endDate:null,
                 description: currentJob.description,
-                company: currentJob.company
+                company: currentJob.company,
+                refModel: role
             });    
         }
         

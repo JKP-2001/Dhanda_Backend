@@ -14,11 +14,16 @@ const meetingSchema = new mongoose.Schema({
         required:true
     },
     participant:[
-        {type:mongoose.Schema.Types.ObjectId, default:[], ref:"user"},
+        {type:mongoose.Schema.Types.ObjectId, default:[], refPath:"refModel"},
     ],
     meeting_link:{
         type:String,
         required:true
+    },
+    refModel:{
+        type:String,
+        required:true,
+        enum:['student','instructor']
     }
 })
 

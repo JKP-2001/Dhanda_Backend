@@ -5,8 +5,13 @@ const commentSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"post"
     },
+    content:{
+        type:String,
+        required:true
+    },
     creationDateAndTime:{
-        type:Date
+        type:Date,
+        default:Date.now()
     },
     replies:[{
         type:mongoose.Schema.Types.ObjectId,
@@ -15,8 +20,13 @@ const commentSchema = new mongoose.Schema({
     }],
     author_id:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"user"
-    }    
+        refPath:"refModel"
+    },
+    refModel:{
+        type:String,
+        required:true,
+        enum:['student','instructor']
+    } 
 })
 
 const Comment = mongoose.model("comment",commentSchema)

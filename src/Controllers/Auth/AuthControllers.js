@@ -12,6 +12,7 @@ const { Instructor } = require("../../Models/peoples/Instructor");
 
 
 
+
 const Signup = async (req, res) => {
     try {
         const DATA = req.body 
@@ -109,6 +110,14 @@ const Signup = async (req, res) => {
 }
 
 
+
+
+
+
+
+
+
+
 const verifyEmail = async (req, res) => {
 
     try {
@@ -151,6 +160,15 @@ const verifyEmail = async (req, res) => {
 }
 
 
+
+
+
+
+
+
+
+
+
 const Signin = async (req, res) => {
 
     try {
@@ -164,6 +182,8 @@ const Signin = async (req, res) => {
         const password = DATA.password;
 
         const role = DATA.role;
+
+        console.log({DATA});
 
         const people = getPeople(role)
 
@@ -203,6 +223,14 @@ const Signin = async (req, res) => {
         res.status(400).json(EncryptRes({ success: false, msg: err.toString() }));
     }
 }
+
+
+
+
+
+
+
+
 
 const passwordChangeRequest = async (req, res) => {
     try {
@@ -245,6 +273,9 @@ const passwordChangeRequest = async (req, res) => {
         res.status(400).json(EncryptRes({ success: false, msg: err.toString() }));
     }
 };
+
+
+
 
 
 const resetPassword = async (req, res) => {
