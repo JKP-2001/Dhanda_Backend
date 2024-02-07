@@ -3,7 +3,7 @@ const mongoose = require("mongoose")
 const educationSchema = new mongoose.Schema({
     author_id:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"user"
+        refPath:"refModel"
     },
     instituteName:{
         type:String,
@@ -31,6 +31,11 @@ const educationSchema = new mongoose.Schema({
     branch:{
         type:String,
         required:true
+    },
+    refModel:{
+        type:String,
+        required:true,
+        enum:['student','instructor']
     }
 })
 
