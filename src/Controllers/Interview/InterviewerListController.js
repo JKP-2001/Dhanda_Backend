@@ -1,5 +1,5 @@
-
-const { Instructor } = require("../../Models/peoples/Instructor")
+const { Instructor } = require("../../Models/peoples/Instructor");
+const { decryptFromJson } = require("../../Utils/EncryptDecrypt");
 const { EncryptRes } = require("../../Utils/EncryptRes")
 const logger = require("../../helpers/Logger")
 const Paginator = require("../../helpers/Paginator")
@@ -11,20 +11,23 @@ const BY_PRICE_LOW_TO_HIGH = "priceLth";
 const BY_PRICE_HIGH_TO_LOW = "priceHtl";
 
 async function interviewerListController(req, res) {
-  let company = req.query.company;
-  if (company === undefined) company = "all";
-
-  let sortBy = req.query.sortBy;
+  const queryParameters = decryptFromJson(req.query.fetchId)
+  console.log("query is " , req.query, "and decrypted ", queryParameters)
+  let sortBy = queryParameters.sortBy;
   if (sortBy === undefined) sortBy = BY_RATING;
 
   const category =
-    req.query.category === undefined || req.query.category == "all"
+    queryParameters.category === undefined || queryParameters.category == "all"
       ? {}
-      : { category: req.query.category };
+      : { category: queryParameters.category };
+  
+  const companyQuery = 
+    queryParameters.companies.length > 0 ? 
+    {company:{$in:queryParameters.companies}} :
+    {}
 
 
-
-  let allUsers = await Instructor.find({...category},'firstName lastName headline rating interviewsTaken price interviewDuration profilePic')
+  let allUsers = await Instructor.find({...category, ...companyQuery},'firstName lastName headline rating interviewsTaken price interviewDuration profilePic')
   // allUsers = allUsers.filter((val,idx)=>val.role == "tutor")
   switch (sortBy){
       case BY_RATING:{
@@ -46,8 +49,8 @@ async function interviewerListController(req, res) {
   }
 
 
-  const page = req.query.page ? req.query.page : 1
-  const limit = req.query.limit ? parseInt(req.query.limit) : allUsers.length;
+  const page = queryParameters.page ? queryParameters.page : 1
+  const limit = queryParameters.limit ? parseInt(queryParameters.limit) : allUsers.length;
   // logger('array ', allUsers)
   const paginatedResult = Paginator(allUsers, page, limit);
   
