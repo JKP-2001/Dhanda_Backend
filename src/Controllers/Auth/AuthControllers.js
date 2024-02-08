@@ -260,6 +260,7 @@ const passwordChangeRequest = async (req, res) => {
 
        
         const url = `http://localhost:3000/reset-password?key=${dataArray.join('')}`;
+        
 
         const name = user.firstName + " " + (user.middleName?user.middleName:"") + " " + user.lastName+" "+`(${user.username})`;
 

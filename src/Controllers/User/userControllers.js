@@ -44,6 +44,42 @@ const getUserData = async (req, res) => {
 }
 
 
+const getUserDataById = async (req, res) => {
+
+    try {
+        const role = req.params.role;
+        const people = getPeople(role);
+        const user = await people.findById(req.params.id).select("-password");
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+
+        const education = await Education.find({ _id: { $in: user.education } });
+
+        const experience = await Experience.find({ _id: { $in: user.experience } });
+
+        const posts = await Post.find({ _id: { $in: user.posts } });
+
+        const newUser = {
+            ...user._doc,
+            education,
+            experience,
+            posts
+        };
+
+        // const encryptedData = encryptToJson(newUser, process.env.ENCRYPT_KEY);
+
+        res.status(200).json({ success:true, data:newUser });
+
+    } catch (error) {
+        console.error('ERROR at getuserData :',error)
+        res.status(400).json({ success:false, msg: error.toString() });
+    }
+}
+
+
 const onBoardingProcess = async (req, res) => {
 
     try {
@@ -134,4 +170,4 @@ const onBoardingProcess = async (req, res) => {
     }
 }
 
-module.exports = { getUserData, onBoardingProcess };
+module.exports = { getUserData, onBoardingProcess, getUserDataById };
