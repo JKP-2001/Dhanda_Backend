@@ -8,34 +8,39 @@ const postRouter = express.Router();
 
 const destinationPath = "./src/uploads/posts";
 
+let upload;
 
-
-
-if (!fs.existsSync(destinationPath)) {
-    fs.mkdirSync(destinationPath, { recursive: true });
+try{
+    if (!fs.existsSync(destinationPath)) {
+        fs.mkdirSync(destinationPath, { recursive: true });
+    }
+    
+    const file_storage = multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, destinationPath);
+        },
+        filename: function (req, file, cb) {
+            cb(null, Date.now() + "-" + file.originalname);
+        }
+    });
+    
+    upload = multer({
+        storage: file_storage,
+        limits: { fileSize: 1024 * 1024 * 10 },
+        fileFilter: (req, file, cb) => {
+            if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype.split("/")[1] === "pdf") {
+                cb(null, true);
+            } else {
+                cb(null, false);
+                return cb(new Error('Only .png, .jpg .jpeg .pdf format allowed!'));
+            }
+        }
+    });
+}catch(err){
+    console.log(err);
 }
 
-const file_storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, destinationPath);
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + "-" + file.originalname);
-    }
-});
 
-const upload = multer({
-    storage: file_storage,
-    limits: { fileSize: 1024 * 1024 * 5 },
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg" || file.mimetype.split("/")[1] === "pdf") {
-            cb(null, true);
-        } else {
-            cb(null, false);
-            return cb(new Error('Only .png, .jpg .jpeg .pdf format allowed!'));
-        }
-    }
-});
 
 
 postRouter.get('/get-all-posts', getAllPosts);

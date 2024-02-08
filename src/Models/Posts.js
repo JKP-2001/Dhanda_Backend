@@ -43,7 +43,7 @@ const postSchema = new mongoose.Schema({
         type:Date,
         default:Date.now
     },
-    updateTime:{
+    updatedAt:{
         type:Date
     },
     refModel:{
