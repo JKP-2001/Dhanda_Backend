@@ -13,7 +13,8 @@ const getImageUrls = (files) => {
     var imageUrls = [];
 
     for (let i = 0; i < files.length; i++) {
-        imageUrls.push(files[i].path);
+        const path = files[i].path.replace(/\\/g, '/');
+        imageUrls.push(path);
     }
 
     return imageUrls;
@@ -23,9 +24,7 @@ const getImageUrls = (files) => {
 const createNewPost = async (req, res) => {
 
     try {
-        const files = req.files;
-
-        var imageUrls = getImageUrls(files);
+        
 
         const people = getPeople(req.role);
 
@@ -34,6 +33,10 @@ const createNewPost = async (req, res) => {
         if (!user) {
             throw new Error("User not found");
         }
+
+        const files = req.files;
+
+        var imageUrls = getImageUrls(files);
 
         const post = await Post.create({
             content: req.body.content,
@@ -44,9 +47,9 @@ const createNewPost = async (req, res) => {
 
         await people.findOneAndUpdate({ _id: user._id }, { $push: { posts: post._id } });
 
-        res.status(200).json({ success: true, message: "Post created successfully" });
+        res.status(200).json({ success: true, msg: "Post created successfully" });
     } catch (err) {
-        res.status(400).json({ success: false, message: err.toString() })
+        res.status(400).json({ success: false, msg: err.toString() })
     }
 }
 
@@ -72,18 +75,18 @@ const getAllPosts = async (req, res) => {
             path:"comments",
             populate: {
                 path: "author_id",
-                select: "firstName middleName lastName role email _id"
+                select: "firstName middleName lastName role email _id bio"
             },
             populate: {
                 path: "replies",
                 select: "content author_id refModel comment_id _id",
                 populate: {
                     path: "author_id",
-                    select: "firstName middleName lastName role email _id"
+                    select: "firstName middleName lastName role email _id bio"
                 }
             }
         })
-        .populate("share");
+        .populate("share").sort({updatedAt:-1, createdAt: -1});
 
         const page = req.query.page ? req.query.page : 1
         
@@ -95,7 +98,7 @@ const getAllPosts = async (req, res) => {
         res.status(200).json({ success: true, data: paginatedResult });
 
     } catch (err) {
-        res.status(400).json({ success: false, message: err.toString() })
+        res.status(400).json({ success: false, msg: err.toString() })
     }
 }
 
@@ -143,7 +146,7 @@ const getAPost = async (req, res) => {
         res.status(200).json({ success: true, data: post });
 
     } catch (err) {
-        res.status(400).json({ success: false, message: err.toString() });
+        res.status(400).json({ success: false, msg: err.toString() });
     }
 }
 
@@ -151,8 +154,7 @@ const updateAPost = async (req, res) => {
 
     try {
 
-        console.log({filesToBeDeleted: req.filesToBeDeleted});
-
+        
         const people = getPeople(req.role);
 
         const user = await people.findOne({ email: req.userEmail });
@@ -175,11 +177,15 @@ const updateAPost = async (req, res) => {
 
         let imageUrls = post.images;
 
-        const filesToBeDeleted = req.filesToBeDeleted;
+        const filesToBeDeleted = req.body.filesToBeDeleted;
+        
 
         if(filesToBeDeleted){
-            for(let i = 0; i < filesToBeDeleted.length; i++){
-                const filePath = filesToBeDeleted[i];
+            let convertedFiles = filesToBeDeleted.replace(/\\\\/g, '/');
+            convertedFiles = JSON.parse(convertedFiles);
+            for(let i = 0; i < convertedFiles.length; i++){
+                const filePath = convertedFiles[i];
+                imageUrls = imageUrls.filter(url => (url.replace(/\\/g, '/')) !== filePath);
                 fs.unlinkSync(filePath);
             }
         }
@@ -197,10 +203,11 @@ const updateAPost = async (req, res) => {
             updatedAt: Date.now()
         });
 
-        res.status(200).json({ success: true, message: "Post updated successfully" });
+        res.status(200).json({ success: true, msg: "Post updated successfully" });
 
     } catch (err) {
-        res.status(400).json({ success: false, message: err.toString() });
+        // console.log({err:err.toString()});
+        res.status(400).json({ success: false, msg: err.toString() });
     }
 }
 
@@ -237,10 +244,10 @@ const deleteAPost = async (req, res) => {
 
         await people.findOneAndUpdate({ _id: user._id }, { $pull: { posts: postId } });
 
-        res.status(200).json({ success: true, message: "Post deleted successfully" });
+        res.status(200).json({ success: true, msg: "Post deleted successfully" });
 
     }catch(err){
-        res.status(400).json({ success: false, message: err.toString() })
+        res.status(400).json({ success: false, msg: err.toString() })
     }
 }
 
@@ -271,10 +278,10 @@ const deleteAllPosts = async (req, res) => {
 
         await people.findOneAndUpdate({ _id: user._id }, { $set: { posts: [] } });
 
-        res.status(200).json({ success: true, message: "All posts deleted successfully" });
+        res.status(200).json({ success: true, msg: "All posts deleted successfully" });
 
     } catch (err) {
-        res.status(400).json({ success: false, message: err.toString() })
+        res.status(400).json({ success: false, msg: err.toString() })
     }
 }
 
@@ -303,15 +310,15 @@ const likeAPost = async (req, res) => {
             if (isLiked) {
                 await Post.findByIdAndUpdate(postId, { $pull: { likes: user._id } });
                 await people.findOneAndUpdate({ _id: user._id }, { $pull: { postLikes: postId } });
-                res.status(200).json({ success: true, message: "Post unliked successfully" });
+                res.status(200).json({ success: true, msg: "Post unliked successfully" });
             } else {
                 await Post.findByIdAndUpdate(postId, { $push: { likes: user._id } });
                 await people.findOneAndUpdate({ _id: user._id }, { $push: { postLikes: postId } });
-                res.status(200).json({ success: true, message: "Post liked successfully" });
+                res.status(200).json({ success: true, msg: "Post liked successfully" });
             }
     
         } catch (err) {
-            res.status(400).json({ success: false, message: err.toString() })
+            res.status(400).json({ success: false, msg: err.toString() })
         }
 }
 
@@ -339,17 +346,17 @@ const bookMarkAPost = async (req, res) => {
         if (isBookMarked) {
             await Post.findByIdAndUpdate(postId, { $pull: { bookmarks: user._id } });
             await people.findOneAndUpdate({ _id: user._id }, { $pull: { postsSaved: postId } });
-            res.status(200).json({ success: true, message: "Post unbookmarked successfully" });
+            res.status(200).json({ success: true, msg: "Post unbookmarked successfully" });
         }
 
         else {
             await Post.findByIdAndUpdate(postId, { $push: { bookmarks: user._id } });
             await people.findOneAndUpdate({ _id: user._id }, { $push: { postsSaved: postId } });
-            res.status(200).json({ success: true, message: "Post bookmarked successfully" });
+            res.status(200).json({ success: true, msg: "Post bookmarked successfully" });
         }
 
     } catch (err) {
-        res.status(400).json({ success: false, message: err.toString() })
+        res.status(400).json({ success: false, msg: err.toString() })
     }
 }
 
@@ -384,10 +391,10 @@ const commentOnAPost = async (req, res) => {
 
         await Post.findByIdAndUpdate(postId, { $push: { comments: newComment._id } });
 
-        res.status(200).json({ success: true, message: "Commented on post successfully" });
+        res.status(200).json({ success: true, msg: "Commented on post successfully" });
 
     } catch (err) {
-        res.status(400).json({ success: false, message: err.toString() });
+        res.status(400).json({ success: false, msg: err.toString() });
     }
 }
 
@@ -422,10 +429,10 @@ const replyOnComment = async (req, res) => {
 
         await Comment.findByIdAndUpdate(commentId, { $push: { replies: newReply._id } });
 
-        res.status(200).json({ success: true, message: "Replied on comment successfully" });
+        res.status(200).json({ success: true, msg: "Replied on comment successfully" });
 
     } catch (err) {
-        res.status(400).json({ success: false, message: err.toString() });
+        res.status(400).json({ success: false, msg: err.toString() });
     }
 }
 
