@@ -42,7 +42,8 @@ const createNewPost = async (req, res) => {
             content: req.body.content,
             author: user._id,
             images: imageUrls,
-            refModel: req.role
+            refModel: req.role,
+            updatedAt:Date.now()
         })
 
         await people.findOneAndUpdate({ _id: user._id }, { $push: { posts: post._id } });
@@ -93,7 +94,6 @@ const getAllPosts = async (req, res) => {
         const limit = req.query.limit ? parseInt(req.query.limit) : allPosts.length;
      
         const paginatedResult = Paginator(allPosts, page, limit);
-
 
         res.status(200).json({ success: true, data: paginatedResult });
 
@@ -200,7 +200,8 @@ const updateAPost = async (req, res) => {
             content: req.body.content,
             images: imageUrls,
             refModel: req.role,
-            updatedAt: Date.now()
+            updatedAt: Date.now(),
+            isUpdated:true
         });
 
         res.status(200).json({ success: true, msg: "Post updated successfully" });

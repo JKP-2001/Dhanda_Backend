@@ -50,6 +50,10 @@ const postSchema = new mongoose.Schema({
         type:String,
         required:true,
         enum:['student','instructor']
+    },
+    isUpdated:{
+        type:Boolean,
+        default:false
     }
 })
 
