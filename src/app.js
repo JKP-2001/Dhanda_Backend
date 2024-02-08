@@ -27,6 +27,7 @@ const passport = require("passport");
 
 const session = require('express-session');
 const microsoftAuthRouter = require("./Routes/Auth/MicrosoftAuth");
+const postRouter = require("./Routes/Post/PostRoutes");
 
 
 
@@ -35,7 +36,7 @@ const microsoftAuthRouter = require("./Routes/Auth/MicrosoftAuth");
 app.use(express.json());
 app.use(methodOverride());
 app.use(morgan("dev"));
-app.use("/uploads", express.static("uploads"));
+app.use("/src/uploads", express.static("./src/uploads"));
 app.use(cookieParser());
 
 
@@ -104,6 +105,8 @@ app.use(BASE_URL + "auth", authRouter);
 
 app.use(BASE_URL + "user", userRouter);
 
+app.use(BASE_URL, postRouter);
+
 app.use(googleAuthRouter);
 
 app.use(microsoftAuthRouter);
@@ -112,6 +115,7 @@ app.use(microsoftAuthRouter);
 
 app.listen(PORT, async (err) => {
   const temp = getCurrentDate();
+
 
 
   if (err) {

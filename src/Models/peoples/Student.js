@@ -55,6 +55,9 @@ const userSchema = new mongoose.Schema({
     postsSaved:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"posts"},
     ],
+    postLikes:[
+        {type:mongoose.Schema.Types.ObjectId, default:[], ref:"posts"},
+    ],
     companies:[{
         type:String,
         default:""

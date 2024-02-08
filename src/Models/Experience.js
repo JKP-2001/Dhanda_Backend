@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const experienceSchema = new mongoose.Schema({
     author_id:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"user",
+        refPath:"refModel"
     },
     role:{
         type:"String",
@@ -33,6 +33,11 @@ const experienceSchema = new mongoose.Schema({
     createdAt:{
         type:Date,
         default:Date.now()
+    },
+    refModel:{
+        type:String,
+        required:true,
+        enum:['student','instructor']
     }
 })
 

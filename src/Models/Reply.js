@@ -6,7 +6,8 @@ const replySchema = new mongoose.Schema({
         ref:"comment"
     },
     creationDateAndTime:{
-        type:Date
+        type:Date,
+        default:Date.now()
     },
     content:{
         type:String,
@@ -14,8 +15,13 @@ const replySchema = new mongoose.Schema({
     },
     author_id:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"user"
-    }    
+        refPath:"refModel"
+    },
+    refModel:{
+        type:String,
+        required:true,
+        enum:['student','instructor']
+    }   
 })
 
 const Reply = mongoose.model("reply",replySchema)
