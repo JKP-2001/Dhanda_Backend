@@ -1,4 +1,5 @@
 const CryptoJS = require('crypto-js');
+const { urlencoded } = require('express');
 
 /**
  * Encrypts the given data to a JSON string using the provided key.
@@ -52,11 +53,14 @@ function decryptFromJson(encryptedData, key=process.env.ENCRYPT_KEY) {
 
 module.exports = {encryptToJson, decryptFromJson};
 
-// require('dotenv').config({path:'../../.env'})
 
-// const demoObj = {
-//   name:"Samuel", 
-//   age:22
-// }
-// const enc = encryptToJson(demoObj)
-// console.log(enc)
+require('dotenv').config({path:'../../.env'})
+function test(){
+    
+    const demoObj = {
+      companies:["amazon", "google", "microsoft"]
+    }
+    const enc = encryptToJson(demoObj)
+    console.log('star -',encodeURIComponent(enc), "-end")
+}
+// test()
