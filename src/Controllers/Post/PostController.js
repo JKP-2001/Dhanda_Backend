@@ -9,6 +9,23 @@ const Paginator = require("../../helpers/Paginator");
 
 const fs = require('fs');
 
+
+const AWS = require('aws-sdk');
+
+const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID
+const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+const BUCKET_REGION = process.env.BUCKET_REGION
+
+
+
+
+const s3 = new AWS.S3({
+    accessKeyId: AWS_ACCESS_KEY_ID,
+    secretAccessKey: AWS_SECRET_ACCESS_KEY,
+    region: BUCKET_REGION
+});
+
+
 const getImageUrls = (files) => {
     var imageUrls = [];
 
@@ -25,6 +42,8 @@ const createNewPost = async (req, res) => {
 
     try {
 
+        
+
 
         const people = getPeople(req.role);
 
@@ -36,15 +55,47 @@ const createNewPost = async (req, res) => {
 
         const files = req.files;
 
-        var imageUrls = getImageUrls(files);
+        const uploadPromises = files.map(async (file) => {
+            const params = {
+                Bucket: 'mock-interview',
+                Key: file.originalname,
+                Body: file.buffer,
+            };
+        
+            return new Promise((resolve, reject) => {
+                s3.upload(params, (err, data) => {
+                    if (err) {
+                        console.error(err);
+                        reject(`Error uploading file ${file.originalname}`);
+                    } else {
+                        resolve(data.Location || ''); // Ensure to handle the case when Location is undefined
+                    }
+                });
+            });
+        });
+        
+        const uploadedUrls = await Promise.all(uploadPromises.filter(url => url !== '')); // Filter out empty URLs
+        
+
+        console.log({ uploadedUrls });
 
         const post = await Post.create({
             content: req.body.content,
             author: user._id,
-            images: imageUrls,
+            images: uploadedUrls,
             refModel: req.role,
-            updatedAt: Date.now()
-        })
+            updatedAt: Date.now(),
+        });
+
+        // var imageUrls = getImageUrls(files);
+
+        // const post = await Post.create({
+        //     content: req.body.content,
+        //     author: user._id,
+        //     images: imageUrls,
+        //     refModel: req.role,
+        //     updatedAt: Date.now()
+        // })
 
         await people.findOneAndUpdate({ _id: user._id }, { $push: { posts: post._id } });
 
@@ -115,12 +166,12 @@ const getAllPostsOfAUser = async (req, res) => {
             throw new Error("User not found");
         }
 
-        
+
 
         const id = req.params.id;
         const role = req.params.role
 
-        
+
 
         const People = getPeople(role);
 
@@ -239,7 +290,7 @@ const getBookMarkedPosts = async (req, res) => {
         const id = req.params.id;
         const role = req.params.role
 
-        
+
 
         const People = getPeople(role);
 
