@@ -17,6 +17,8 @@ const googleAuthRouter = require("./Routes/Auth/GoogleAuth");
 const DecryptReq = require("./Middlewares/DecryptReq");
 const { decryptFromJson } = require("./Utils/EncryptDecrypt");
 
+process.env.AWS_SDK_JS_SUPPRESS_MAINTENANCE_MODE_MESSAGE = '1';
+
 const PORT = process.env.PORT;
 
 const DB_URI = process.env.DB_URI;
