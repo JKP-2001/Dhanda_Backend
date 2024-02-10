@@ -134,7 +134,7 @@ microsoftAuthRouter.get('/auth/microsoft/callback',
         const urlEncryptedToken = encodeURIComponent(unique);
 
 
-        res.cookie('authToken', unique, { secure: true, sameSite: 'None' });
+        res.cookie('authToken', urlEncryptedToken, { secure: true, sameSite: 'None' });
 
         res.redirect(`${FRONT_END_URL}/google/auth/callback?status=success&token=${urlEncryptedToken}`);
     }
