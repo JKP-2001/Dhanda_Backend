@@ -19,14 +19,15 @@ async function interviewerListController(req, res) {
 
         let sortBy = queryParameters.sortBy;
         if (sortBy === undefined) sortBy = BY_RATING;
-
+        
         const category =
             queryParameters.category === undefined ||
             queryParameters.category == "all"
                 ? {}
                 : { category: queryParameters.category };
-
+        
         const companyNames = queryParameters.companies
+        console.log('company names ', companyNames)
 
         let instructors = await Instructor.find(
             { ...category},
@@ -34,11 +35,10 @@ async function interviewerListController(req, res) {
         )
         .populate('experience')
 
-        // console.log('instructors array is ', instructors)
-
-        // console.log('match instructros is without filter', matchInstructors)
+        console.log('instructors array is ', instructors)
         let matchInstructors = instructors.filter(
             (instructor,idx)=>{
+                if (companyNames.length == 0) return true
                 let instructorCompanyNames = []
                 instructor.experience.forEach((item,idx)=>{
                     instructorCompanyNames.push(item.company)
@@ -48,17 +48,15 @@ async function interviewerListController(req, res) {
                 return nomatch == 0
             }
         )
-        // console.log('before deleting ', matchInstructors)
         matchInstructors = matchInstructors.map(
             (instructor)=>{
                 delete instructor._doc.experience
                 return {...instructor._doc}
             }
         )
-        // console.log('matchInstructor ', matchInstructors)
+        console.log('matchInstructor ', matchInstructors)
         
         
-        // matchInstructors = matchInstructors.filter((val,idx)=>val.role == "tutor")
         switch (sortBy) {
             case BY_RATING: {
                 matchInstructors = matchInstructors.sort(
