@@ -111,6 +111,12 @@ app.use(googleAuthRouter);
 
 app.use(microsoftAuthRouter);
 
+//Enabling swagger
+if (true){
+  //assuing dev mode
+    const swaggerUi = require('swagger-ui-express')
+    const swaggerConfig = require("./configs/SwaggerConfig");
+}
 
 
 app.listen(PORT, async (err) => {
