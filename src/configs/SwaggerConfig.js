@@ -9,7 +9,7 @@ const options = {
       description: 'Documentation for your API built with Node.js and Express',
     },
   },
-  apis: ['./Routes/*.js'], // Path to the API routes folder
+  apis: ['./src/Controllers/**/*.js'], // Path to the API routes folder
 };
 
 const swaggerConfig= swaggerJsdoc(options);
