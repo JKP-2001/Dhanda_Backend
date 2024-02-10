@@ -9,6 +9,8 @@ const { ROLE_INSTRUCTOR, ROLE_STUDENT } = require('../../Utils/Constants');
 
 let ROLE = "";
 
+const FRONT_END_URL = process.env.FRONT_END_URL
+
 
 const setRoleMiddleware = (req, res, next) => {
     try {
@@ -33,12 +35,13 @@ const microsoftAuthRouter = require("express").Router();
 
 const MICROSOFT_CLIENT_ID = process.env.MICROSOFT_CLIENT_ID;
 const MICROSOFT_CLIENT_SECRET = process.env.MICROSOFT_CLIENT_SECRET_VALUE;
+const MS_CALLBACK_URL = process.env.MS_CALLBACK_URL;
 
 passport.use(new MicrosoftStrategy({
 
     clientID: MICROSOFT_CLIENT_ID,
     clientSecret: MICROSOFT_CLIENT_SECRET,
-    callbackURL: "http://localhost:5000/auth/microsoft/callback",
+    callbackURL: MS_CALLBACK_URL,
     scope: ['user.read'],
     tenant: 'common',
 
@@ -113,11 +116,11 @@ microsoftAuthRouter.get('/auth/microsoft/callback',
 
     async function (req, res) {
         if (req.ANTIUSER) {
-            return res.redirect(`http://localhost:3000/google/auth/callback?status=antiuser`);
+            return res.redirect(`${FRONT_END_URL}/google/auth/callback?status=antiuser`);
         }
 
         if (req.nonSocialUser) {
-            return res.redirect(`http://localhost:3000/google/auth/callback?status=nonSocialUser`);
+            return res.redirect(`${FRONT_END_URL}/google/auth/callback?status=nonSocialUser`);
         }
 
         const unique_data = {
@@ -131,7 +134,7 @@ microsoftAuthRouter.get('/auth/microsoft/callback',
 
         res.cookie('authToken', unique, { secure: true, sameSite: 'None' });
 
-        res.redirect(`http://localhost:3000/google/auth/callback?status=success`);
+        res.redirect(`${FRONT_END_URL}/google/auth/callback?status=success`);
     }
 );
 
@@ -163,11 +166,11 @@ microsoftAuthRouter.get('/auth/google/logout', (req, res, next) => {
 
 microsoftAuthRouter.use((err, req, res, next) => {
     if (err.isAntiUser) {
-        return res.redirect(`http://localhost:3000/google/auth/callback?status=antiuser`);
+        return res.redirect(`${FRONT_END_URL}/google/auth/callback?status=antiuser`);
     }
 
     if (err.isNonSocialUser) {
-        return res.redirect(`http://localhost:3000/google/auth/callback?status=nonSocialUser`);
+        return res.redirect(`${FRONT_END_URL}/google/auth/callback?status=nonSocialUser`);
     }
 });
 

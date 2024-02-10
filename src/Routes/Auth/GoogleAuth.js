@@ -33,12 +33,14 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const googleAuthRouter = require("express").Router();
 
+const FRONT_END_URL = process.env.FRONT_END_URL
+
 passport.use(
   new GoogleStrategy(
     {
       clientID: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:5000/auth/google/callback",
+      callbackURL: process.env.GOOGLE_CALLBACK_URL,
       passReqToCallback: true,
       stateless: true,
     },
@@ -108,11 +110,11 @@ googleAuthRouter.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   async function (req, res) {
     if (req.ANTIUSER) {
-      return res.redirect(`http://localhost:3000/google/auth/callback?status=antiuser`);
+      return res.redirect(`${FRONT_END_URL}/google/auth/callback?status=antiuser`);
     }
 
     if (req.nonSocialUser) {
-      return res.redirect(`http://localhost:3000/google/auth/callback?status=nonSocialUser`);
+      return res.redirect(`${FRONT_END_URL}/google/auth/callback?status=nonSocialUser`);
     }
 
     const unique_data = {
@@ -126,7 +128,7 @@ googleAuthRouter.get('/auth/google/callback',
 
     res.cookie('authToken', unique, { secure: true, sameSite: 'None' });
 
-    res.redirect(`http://localhost:3000/google/auth/callback?status=success`);
+    res.redirect(`${FRONT_END_URL}/google/auth/callback?status=success`);
   }
 );
 
@@ -158,11 +160,11 @@ googleAuthRouter.get('/auth/google/logout', (req, res, next) => {
 // Error handling middleware
 googleAuthRouter.use((err, req, res, next) => {
   if (err.isAntiUser) {
-    return res.redirect(`http://localhost:3000/google/auth/callback?status=antiuser`);
+    return res.redirect(`${FRONT_END_URL}/google/auth/callback?status=antiuser`);
   }
 
   if (err.isNonSocialUser) {
-    return res.redirect(`http://localhost:3000/google/auth/callback?status=nonSocialUser`);
+    return res.redirect(`${FRONT_END_URL}/google/auth/callback?status=nonSocialUser`);
   }
 });
 
