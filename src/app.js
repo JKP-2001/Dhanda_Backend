@@ -17,6 +17,8 @@ const googleAuthRouter = require("./Routes/Auth/GoogleAuth");
 const DecryptReq = require("./Middlewares/DecryptReq");
 const { decryptFromJson } = require("./Utils/EncryptDecrypt");
 
+process.env.AWS_SDK_JS_SUPPRESS_MAINTENANCE_MODE_MESSAGE = '1';
+
 const PORT = process.env.PORT;
 
 const DB_URI = process.env.DB_URI;
@@ -28,6 +30,7 @@ const passport = require("passport");
 const session = require('express-session');
 const microsoftAuthRouter = require("./Routes/Auth/MicrosoftAuth");
 const postRouter = require("./Routes/Post/PostRoutes");
+const { getEncryptedController } = require("./Controllers/dev_controllers/GetEncryptedController");
 
 
 
@@ -76,6 +79,16 @@ app.use((req, res, next) => {
   next();
 });
 
+//Only in DEV mode
+if (process.env.DEVELOPMENT === 'true'){ 
+  //assuing dev mode
+    const swaggerUi = require('swagger-ui-express')
+    const swaggerConfig = require("./configs/SwaggerConfig");
+    app.use('/api-docs',swaggerUi.serve,swaggerUi.setup(swaggerConfig))
+    app.post('/convert', getEncryptedController)
+}
+
+
 app.use((req, res, next) => {
   if (
     req.originalMethod !== "GET" &&
@@ -111,8 +124,6 @@ app.use(googleAuthRouter);
 
 app.use(microsoftAuthRouter);
 
-
-
 app.listen(PORT, async (err) => {
   const temp = getCurrentDate();
 
@@ -127,5 +138,7 @@ app.listen(PORT, async (err) => {
     console.log("DB Connection Started");
     await connect();
     console.log(`server started on port ${PORT}`);
+    console.log('\x1b[34m%s\x1b[0m', 'View the apis at localhost:5000/api-docs');
+
   }
 });

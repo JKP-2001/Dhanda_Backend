@@ -9,6 +9,36 @@ const Paginator = require("../../helpers/Paginator");
 
 const fs = require('fs');
 
+
+const AWS = require('aws-sdk');
+
+const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID
+const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+const BUCKET_REGION = process.env.BUCKET_REGION
+
+
+
+
+const s3 = new AWS.S3({
+    accessKeyId: AWS_ACCESS_KEY_ID,
+    secretAccessKey: AWS_SECRET_ACCESS_KEY,
+    region: BUCKET_REGION
+});
+
+const deleteS3Files = async (imageUrls) => {
+    const deletePromises = imageUrls.map(async (url) => {
+        const key = url.split('/').pop(); // Assuming the key is the last part of the URL
+        const params = {
+            Bucket: 'mock-interview',
+            Key: key,
+        };
+        await s3.deleteObject(params).promise();
+    });
+
+    await Promise.all(deletePromises);
+};
+
+
 const getImageUrls = (files) => {
     var imageUrls = [];
 
@@ -24,7 +54,9 @@ const getImageUrls = (files) => {
 const createNewPost = async (req, res) => {
 
     try {
+
         
+
 
         const people = getPeople(req.role);
 
@@ -36,15 +68,47 @@ const createNewPost = async (req, res) => {
 
         const files = req.files;
 
-        var imageUrls = getImageUrls(files);
+        const uploadPromises = files.map(async (file) => {
+            const params = {
+                Bucket: 'mock-interview',
+                Key: file.originalname,
+                Body: file.buffer,
+            };
+        
+            return new Promise((resolve, reject) => {
+                s3.upload(params, (err, data) => {
+                    if (err) {
+                        console.error(err);
+                        reject(`Error uploading file ${file.originalname}`);
+                    } else {
+                        resolve(data.Location || ''); // Ensure to handle the case when Location is undefined
+                    }
+                });
+            });
+        });
+        
+        const uploadedUrls = await Promise.all(uploadPromises.filter(url => url !== '')); // Filter out empty URLs
+        
+
+        console.log({ uploadedUrls });
 
         const post = await Post.create({
             content: req.body.content,
             author: user._id,
-            images: imageUrls,
+            images: uploadedUrls,
             refModel: req.role,
-            updatedAt:Date.now()
-        })
+            updatedAt: Date.now(),
+        });
+
+        // var imageUrls = getImageUrls(files);
+
+        // const post = await Post.create({
+        //     content: req.body.content,
+        //     author: user._id,
+        //     images: imageUrls,
+        //     refModel: req.role,
+        //     updatedAt: Date.now()
+        // })
 
         await people.findOneAndUpdate({ _id: user._id }, { $push: { posts: post._id } });
 
@@ -58,41 +122,115 @@ const createNewPost = async (req, res) => {
 const getAllPosts = async (req, res) => {
 
     try {
-        
+
         const allPosts = await Post.find().
-        populate({
-            path:"author",
-            select: "-password"
-        })
-        .populate({
-            path:"likes",
-            select: "firstName middleName lastName role email _id"
-        }).
-        populate({
-            path:"bookmarks",
-            select: "firstName middleName lastName role email _id"
-        })
-        .populate({
-            path:"comments",
-            populate: {
-                path: "author_id",
-                select: "firstName middleName lastName role email _id bio"
-            },
-            populate: {
-                path: "replies",
-                select: "content author_id refModel comment_id _id",
+            populate({
+                path: "author",
+                select: "-password"
+            })
+            .populate({
+                path: "likes",
+                select: "firstName middleName lastName role email _id"
+            }).
+            populate({
+                path: "bookmarks",
+                select: "firstName middleName lastName role email _id"
+            })
+            .populate({
+                path: "comments",
                 populate: {
                     path: "author_id",
                     select: "firstName middleName lastName role email _id bio"
+                },
+                populate: {
+                    path: "replies",
+                    select: "content author_id refModel comment_id _id",
+                    populate: {
+                        path: "author_id",
+                        select: "firstName middleName lastName role email _id bio"
+                    }
                 }
-            }
-        })
-        .populate("share").sort({updatedAt:-1, createdAt: -1});
+            })
+            .populate("share").sort({ updatedAt: -1, createdAt: -1 });
 
         const page = req.query.page ? req.query.page : 1
-        
+
         const limit = req.query.limit ? parseInt(req.query.limit) : allPosts.length;
-     
+
+        const paginatedResult = Paginator(allPosts, page, limit);
+
+        res.status(200).json({ success: true, data: paginatedResult });
+
+    } catch (err) {
+        res.status(400).json({ success: false, msg: err.toString() })
+    }
+}
+
+
+const getAllPostsOfAUser = async (req, res) => {
+
+    try {
+
+        const people = getPeople(req.role);
+
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+
+
+        const id = req.params.id;
+        const role = req.params.role
+
+
+
+        const People = getPeople(role);
+
+        const searchedUser = await People.findOne({ _id: id });
+
+        if (!searchedUser) {
+            throw new Error("User not found");
+        }
+
+        const posts = searchedUser.posts;
+
+
+        const allPosts = await Post.find({ _id: { $in: posts } }).
+            populate({
+                path: "author",
+                select: "-password"
+            })
+            .populate({
+                path: "likes",
+                select: "firstName middleName lastName role email _id"
+            }).
+            populate({
+                path: "bookmarks",
+                select: "firstName middleName lastName role email _id"
+            })
+            .populate({
+                path: "comments",
+                populate: {
+                    path: "author_id",
+                    select: "firstName middleName lastName role email _id bio"
+                },
+                populate: {
+                    path: "replies",
+                    select: "content author_id refModel comment_id _id",
+                    populate: {
+                        path: "author_id",
+                        select: "firstName middleName lastName role email _id bio"
+                    }
+                }
+            })
+            .populate("share").sort({ updatedAt: -1, createdAt: -1 });
+
+        const page = req.query.page ? req.query.page : 1
+
+        const limit = req.query.limit ? parseInt(req.query.limit) : allPosts.length;
+
         const paginatedResult = Paginator(allPosts, page, limit);
 
         res.status(200).json({ success: true, data: paginatedResult });
@@ -106,38 +244,23 @@ const getAllPosts = async (req, res) => {
 const getAPost = async (req, res) => {
 
     try {
-        
+
         const postId = req.params.id;
 
         const post = await Post.findById(postId).
-        populate({
-            path:"author",
-            select: "-password"
-        })
-        .populate({
-            path:"likes",
-            select: "firstName middleName lastName role email _id"
-        }).
-        populate({
-            path:"bookmarks",
-            select: "firstName middleName lastName role email _id"
-        })
-        .populate({
-            path:"comments",
-            populate: {
-                path: "author_id",
+            populate({
+                path: "author",
+                select: "-password"
+            })
+            .populate({
+                path: "likes",
                 select: "firstName middleName lastName role email _id"
-            },
-            populate: {
-                path: "replies",
-                select: "content author_id refModel comment_id _id",
-                populate: {
-                    path: "author_id",
-                    select: "firstName middleName lastName role email _id"
-                }
-            }
-        })
-        .populate("share");
+            }).
+            populate({
+                path: "bookmarks",
+                select: "firstName middleName lastName role email _id"
+            })
+            .populate("share");
 
         if (!post) {
             throw new Error("Post not found");
@@ -150,11 +273,66 @@ const getAPost = async (req, res) => {
     }
 }
 
+const getBookMarkedPosts = async (req, res) => {
+
+    try {
+
+        const people = getPeople(req.role);
+
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const id = req.params.id;
+        const role = req.params.role
+
+
+
+        const People = getPeople(role);
+
+        const searchedUser = await People.findOne({ _id: id });
+
+        if (!searchedUser) {
+            throw new Error("User not found");
+        }
+
+        const posts = searchedUser.postsSaved;
+
+        const allPosts = await Post.find({ _id: { $in: posts } }).populate({
+            path: "author",
+            select: "-password"
+        })
+            .populate({
+                path: "likes",
+                select: "firstName middleName lastName role email _id"
+            }).
+            populate({
+                path: "bookmarks",
+                select: "firstName middleName lastName role email _id"
+            })
+            .populate("share").sort({ updatedAt: -1, createdAt: -1 });
+
+        const page = req.query.page ? req.query.page : 1
+
+        const limit = req.query.limit ? parseInt(req.query.limit) : allPosts.length;
+
+        const paginatedResult = Paginator(allPosts, page, limit);
+
+        res.status(200).json({ success: true, data: paginatedResult });
+
+    } catch (err) {
+        res.status(400).json({ success: false, msg: err.toString() })
+    }
+
+}
+
 const updateAPost = async (req, res) => {
 
     try {
 
-        
+
         const people = getPeople(req.role);
 
         const user = await people.findOne({ email: req.userEmail });
@@ -167,30 +345,30 @@ const updateAPost = async (req, res) => {
 
         const post = await Post.findById(postId);
 
-        if(!post){
+        if (!post) {
             throw new Error("Post not found");
         }
 
-        if(post.author.toString() !== user._id.toString()){
+        if (post.author.toString() !== user._id.toString()) {
             throw new Error("You are not authorized to update this post");
         }
 
         let imageUrls = post.images;
 
         const filesToBeDeleted = req.body.filesToBeDeleted;
-        
 
-        if(filesToBeDeleted){
+
+        if (filesToBeDeleted) {
             let convertedFiles = filesToBeDeleted.replace(/\\\\/g, '/');
             convertedFiles = JSON.parse(convertedFiles);
-            for(let i = 0; i < convertedFiles.length; i++){
+            for (let i = 0; i < convertedFiles.length; i++) {
                 const filePath = convertedFiles[i];
                 imageUrls = imageUrls.filter(url => (url.replace(/\\/g, '/')) !== filePath);
                 fs.unlinkSync(filePath);
             }
         }
 
-        if(req.files){
+        if (req.files) {
             const newImageUrls = getImageUrls(req.files);
 
             imageUrls = imageUrls.concat(newImageUrls);
@@ -201,7 +379,7 @@ const updateAPost = async (req, res) => {
             images: imageUrls,
             refModel: req.role,
             updatedAt: Date.now(),
-            isUpdated:true
+            isUpdated: true
         });
 
         res.status(200).json({ success: true, msg: "Post updated successfully" });
@@ -213,7 +391,7 @@ const updateAPost = async (req, res) => {
 }
 
 const deleteAPost = async (req, res) => {
-    try{
+    try {
 
         const people = getPeople(req.role);
 
@@ -227,19 +405,19 @@ const deleteAPost = async (req, res) => {
 
         const post = await Post.findById(postId);
 
-        if(!post){
+        if (!post) {
             throw new Error("Post not found");
         }
 
-        if(post.author.toString() !== user._id.toString()){
+        if (post.author.toString() !== user._id.toString()) {
             throw new Error("You are not authorized to delete this post");
         }
 
         const imageUrls = post.images;
 
-        for (let i = 0; i < imageUrls.length; i++) {
-            fs.unlinkSync(imageUrls[i]);
-        }
+        
+
+        await deleteS3Files(imageUrls);
 
         await Post.findByIdAndDelete(postId);
 
@@ -247,7 +425,7 @@ const deleteAPost = async (req, res) => {
 
         res.status(200).json({ success: true, msg: "Post deleted successfully" });
 
-    }catch(err){
+    } catch (err) {
         res.status(400).json({ success: false, msg: err.toString() })
     }
 }
@@ -288,39 +466,39 @@ const deleteAllPosts = async (req, res) => {
 
 
 const likeAPost = async (req, res) => {
-    
-        try {
-            const people = getPeople(req.role);
-    
-            const user = await people.findOne({ email: req.userEmail });
-    
-            if (!user) {
-                throw new Error("User not found");
-            }
-    
-            const postId = req.params.id;
-    
-            const post = await Post.findById(postId);
-    
-            if (!post) {
-                throw new Error("Post not found");
-            }
-    
-            const isLiked = post.likes.includes(user._id);
-    
-            if (isLiked) {
-                await Post.findByIdAndUpdate(postId, { $pull: { likes: user._id } });
-                await people.findOneAndUpdate({ _id: user._id }, { $pull: { postLikes: postId } });
-                res.status(200).json({ success: true, msg: "Post unliked successfully" });
-            } else {
-                await Post.findByIdAndUpdate(postId, { $push: { likes: user._id } });
-                await people.findOneAndUpdate({ _id: user._id }, { $push: { postLikes: postId } });
-                res.status(200).json({ success: true, msg: "Post liked successfully" });
-            }
-    
-        } catch (err) {
-            res.status(400).json({ success: false, msg: err.toString() })
+
+    try {
+        const people = getPeople(req.role);
+
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
         }
+
+        const postId = req.params.id;
+
+        const post = await Post.findById(postId);
+
+        if (!post) {
+            throw new Error("Post not found");
+        }
+
+        const isLiked = post.likes.includes(user._id);
+
+        if (isLiked) {
+            await Post.findByIdAndUpdate(postId, { $pull: { likes: user._id } });
+            await people.findOneAndUpdate({ _id: user._id }, { $pull: { postLikes: postId } });
+            res.status(200).json({ success: true, msg: "Post unliked successfully" });
+        } else {
+            await Post.findByIdAndUpdate(postId, { $push: { likes: user._id } });
+            await people.findOneAndUpdate({ _id: user._id }, { $push: { postLikes: postId } });
+            res.status(200).json({ success: true, msg: "Post liked successfully" });
+        }
+
+    } catch (err) {
+        res.status(400).json({ success: false, msg: err.toString() })
+    }
 }
 
 const bookMarkAPost = async (req, res) => {
@@ -367,6 +545,8 @@ const commentOnAPost = async (req, res) => {
     try {
         const people = getPeople(req.role);
 
+        
+
         const user = await people.findOne({ email: req.userEmail });
 
         if (!user) {
@@ -385,7 +565,8 @@ const commentOnAPost = async (req, res) => {
             content: req.body.content,
             author_id: user._id,
             refModel: req.role,
-            post_id: postId
+            post_id: postId,
+            creationDateAndTime:Date.now()
         };
 
         const newComment = await Comment.create(comment);
@@ -400,8 +581,63 @@ const commentOnAPost = async (req, res) => {
 }
 
 
-const replyOnComment = async (req, res) => {
+const getCommentsOfAPost = async (req, res) => {
     
+    try {
+
+        const postId = req.params.id;
+
+        const post = await Post.findById(postId);
+
+        if (!post) {
+            throw new Error("Post not found");
+        }
+
+        const comments = await Comment.find({ post_id: postId }).populate("author_id", "firstName middleName lastName role email _id").sort({ creationDateAndTime: -1 });
+
+        const page = parseInt(req.query.page) || 1;
+
+        const limit = parseInt(req.query.limit) || 10;
+
+        const paginatedResult = Paginator(comments, page, limit);
+
+        res.status(200).json({ success: true, data: paginatedResult });
+
+    } catch (err) {
+        res.status(400).json({ success: false, msg: err.toString() });
+    }
+}
+
+const getRepliesOfAComment = async (req, res) => {
+
+    try {
+
+        const commentId = req.params.id;
+
+        const comment = await Comment.findById(commentId);
+
+        if (!comment) {
+            throw new Error("Comment not found");
+        }
+
+        const replies = await Reply.find({ comment_id: commentId }).populate("author_id", "firstName middleName lastName role email _id").sort({ creationDateAndTime: -1 });
+
+        const page = parseInt(req.query.page) || 1;
+
+        const limit = parseInt(req.query.limit) || 10;
+
+        const paginatedResult = Paginator(replies, page, limit);
+
+        res.status(200).json({ success: true, data: paginatedResult });
+
+    } catch (err) {
+        res.status(400).json({ success: false, msg: err.toString() });
+    }
+}
+
+
+const replyOnComment = async (req, res) => {
+
     try {
         const people = getPeople(req.role);
 
@@ -423,7 +659,8 @@ const replyOnComment = async (req, res) => {
             content: req.body.content,
             author_id: user._id,
             refModel: req.role,
-            comment_id: commentId
+            comment_id: commentId,
+            creationDateAndTime:Date.now()
         }
 
         const newReply = await Reply.create(reply);
@@ -441,4 +678,4 @@ const replyOnComment = async (req, res) => {
 
 
 
-module.exports = { createNewPost, getAllPosts, deleteAllPosts, deleteAPost, getAPost, likeAPost, bookMarkAPost, commentOnAPost, replyOnComment, updateAPost };
+module.exports = { createNewPost, getAllPosts, deleteAllPosts, deleteAPost, getAPost, likeAPost, bookMarkAPost, commentOnAPost, replyOnComment, updateAPost, getAllPostsOfAUser, getBookMarkedPosts, getCommentsOfAPost, getRepliesOfAComment };

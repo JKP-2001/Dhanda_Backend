@@ -1,7 +1,6 @@
 const { Instructor } = require("../../Models/peoples/Instructor");
 const { decryptFromJson } = require("../../Utils/EncryptDecrypt");
 const { EncryptRes } = require("../../Utils/EncryptRes");
-const { levenshteinDistance } = require("../../helpers/HelperFunctions");
 const Paginator = require("../../helpers/Paginator");
 const { getNonSimilarityScore } = require("../../services/interviewerListControllerService");
 
@@ -9,6 +8,34 @@ const BY_RATING = "rating";
 const BY_NO_OF_INTERVIEWS_TAKEN = "interviewsTaken";
 const BY_PRICE_LOW_TO_HIGH = "priceLth";
 const BY_PRICE_HIGH_TO_LOW = "priceHtl";
+
+
+/**
+ * @openapi
+ * tags:
+ *   - name: Interviewers
+ *     description: All apis related to interviewers
+ * /api/v1/interviewers/all:
+ *   get:
+ *     summary: Retrieve information based on payload.
+ *     tags: 
+ *       - Interviewers
+ *     description: |
+ *       Retrieves information based on the provided payload query parameter.
+ *     parameters:
+ *       - in: query
+ *         name: fetchId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: write encrypted hash with data as {sortBy, companies, category}
+ *     responses:
+ *       '200':
+ *          description: You will get valid result
+ *       '400':
+ *         description: some
+ */
+
 
 async function interviewerListController(req, res) {
     try {
@@ -91,10 +118,11 @@ async function interviewerListController(req, res) {
             ? parseInt(queryParameters.limit)
             : matchInstructors.length;
         // console.log('array ', matchInstructors)
-        const paginatedResult = Paginator(matchInstructors, page, limit);
+        let results = Paginator(matchInstructors, page, limit);
 
-        const encryptedResult = EncryptRes(paginatedResult);
-        res.status(200).json(encryptedResult);
+        if (process.env.DEVELOPMENT === 'false')
+            results = EncryptRes(results);
+        res.status(200).json(results);
     } catch (e) {
         console.error('Error at interviewer list controller : ', e)
         res.status(400).json({success:false, msg:e})
