@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const { createNewPost, getAllPosts, deleteAllPosts, deleteAPost, getAPost, likeAPost, bookMarkAPost, commentOnAPost, replyOnComment, updateAPost, getAllPostsOfAUser, getBookMarkedPosts } = require('../../Controllers/Post/PostController');
+const { createNewPost, getAllPosts, deleteAllPosts, deleteAPost, getAPost, likeAPost, bookMarkAPost, commentOnAPost, replyOnComment, updateAPost, getAllPostsOfAUser, getBookMarkedPosts, getCommentsOfAPost, getRepliesOfAComment } = require('../../Controllers/Post/PostController');
 const { checkUser } = require('../../Middlewares/checkUser');
 const fs = require('fs');
 
@@ -68,6 +68,8 @@ postRouter.get('/get-all-posts', getAllPosts);
 postRouter.get('/get-post/:id', getAPost);
 postRouter.get('/get-all-posts-of-user/:role/:id', checkUser, getAllPostsOfAUser);
 postRouter.get('/get-book-marked-post/:role/:id', checkUser, getBookMarkedPosts);
+postRouter.get('/post/comments/:id', getCommentsOfAPost);
+postRouter.get('/comments/replies/:id', getRepliesOfAComment);
 
 postRouter.post('/create-post', checkUser, upload.array('files'), createNewPost);
 postRouter.post('/comment/:id', checkUser, commentOnAPost);

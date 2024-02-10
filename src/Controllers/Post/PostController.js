@@ -25,6 +25,19 @@ const s3 = new AWS.S3({
     region: BUCKET_REGION
 });
 
+const deleteS3Files = async (imageUrls) => {
+    const deletePromises = imageUrls.map(async (url) => {
+        const key = url.split('/').pop(); // Assuming the key is the last part of the URL
+        const params = {
+            Bucket: 'mock-interview',
+            Key: key,
+        };
+        await s3.deleteObject(params).promise();
+    });
+
+    await Promise.all(deletePromises);
+};
+
 
 const getImageUrls = (files) => {
     var imageUrls = [];
@@ -247,21 +260,6 @@ const getAPost = async (req, res) => {
                 path: "bookmarks",
                 select: "firstName middleName lastName role email _id"
             })
-            .populate({
-                path: "comments",
-                populate: {
-                    path: "author_id",
-                    select: "firstName middleName lastName role email _id"
-                },
-                populate: {
-                    path: "replies",
-                    select: "content author_id refModel comment_id _id",
-                    populate: {
-                        path: "author_id",
-                        select: "firstName middleName lastName role email _id"
-                    }
-                }
-            })
             .populate("share");
 
         if (!post) {
@@ -313,21 +311,6 @@ const getBookMarkedPosts = async (req, res) => {
             populate({
                 path: "bookmarks",
                 select: "firstName middleName lastName role email _id"
-            })
-            .populate({
-                path: "comments",
-                populate: {
-                    path: "author_id",
-                    select: "firstName middleName lastName role email _id bio"
-                },
-                populate: {
-                    path: "replies",
-                    select: "content author_id refModel comment_id _id",
-                    populate: {
-                        path: "author_id",
-                        select: "firstName middleName lastName role email _id bio"
-                    }
-                }
             })
             .populate("share").sort({ updatedAt: -1, createdAt: -1 });
 
@@ -432,9 +415,9 @@ const deleteAPost = async (req, res) => {
 
         const imageUrls = post.images;
 
-        for (let i = 0; i < imageUrls.length; i++) {
-            fs.unlinkSync(imageUrls[i]);
-        }
+        
+
+        await deleteS3Files(imageUrls);
 
         await Post.findByIdAndDelete(postId);
 
@@ -562,6 +545,8 @@ const commentOnAPost = async (req, res) => {
     try {
         const people = getPeople(req.role);
 
+        
+
         const user = await people.findOne({ email: req.userEmail });
 
         if (!user) {
@@ -580,7 +565,8 @@ const commentOnAPost = async (req, res) => {
             content: req.body.content,
             author_id: user._id,
             refModel: req.role,
-            post_id: postId
+            post_id: postId,
+            creationDateAndTime:Date.now()
         };
 
         const newComment = await Comment.create(comment);
@@ -588,6 +574,61 @@ const commentOnAPost = async (req, res) => {
         await Post.findByIdAndUpdate(postId, { $push: { comments: newComment._id } });
 
         res.status(200).json({ success: true, msg: "Commented on post successfully" });
+
+    } catch (err) {
+        res.status(400).json({ success: false, msg: err.toString() });
+    }
+}
+
+
+const getCommentsOfAPost = async (req, res) => {
+    
+    try {
+
+        const postId = req.params.id;
+
+        const post = await Post.findById(postId);
+
+        if (!post) {
+            throw new Error("Post not found");
+        }
+
+        const comments = await Comment.find({ post_id: postId }).populate("author_id", "firstName middleName lastName role email _id").sort({ creationDateAndTime: -1 });
+
+        const page = parseInt(req.query.page) || 1;
+
+        const limit = parseInt(req.query.limit) || 10;
+
+        const paginatedResult = Paginator(comments, page, limit);
+
+        res.status(200).json({ success: true, data: paginatedResult });
+
+    } catch (err) {
+        res.status(400).json({ success: false, msg: err.toString() });
+    }
+}
+
+const getRepliesOfAComment = async (req, res) => {
+
+    try {
+
+        const commentId = req.params.id;
+
+        const comment = await Comment.findById(commentId);
+
+        if (!comment) {
+            throw new Error("Comment not found");
+        }
+
+        const replies = await Reply.find({ comment_id: commentId }).populate("author_id", "firstName middleName lastName role email _id").sort({ creationDateAndTime: -1 });
+
+        const page = parseInt(req.query.page) || 1;
+
+        const limit = parseInt(req.query.limit) || 10;
+
+        const paginatedResult = Paginator(replies, page, limit);
+
+        res.status(200).json({ success: true, data: paginatedResult });
 
     } catch (err) {
         res.status(400).json({ success: false, msg: err.toString() });
@@ -618,7 +659,8 @@ const replyOnComment = async (req, res) => {
             content: req.body.content,
             author_id: user._id,
             refModel: req.role,
-            comment_id: commentId
+            comment_id: commentId,
+            creationDateAndTime:Date.now()
         }
 
         const newReply = await Reply.create(reply);
@@ -636,4 +678,4 @@ const replyOnComment = async (req, res) => {
 
 
 
-module.exports = { createNewPost, getAllPosts, deleteAllPosts, deleteAPost, getAPost, likeAPost, bookMarkAPost, commentOnAPost, replyOnComment, updateAPost, getAllPostsOfAUser, getBookMarkedPosts };
+module.exports = { createNewPost, getAllPosts, deleteAllPosts, deleteAPost, getAPost, likeAPost, bookMarkAPost, commentOnAPost, replyOnComment, updateAPost, getAllPostsOfAUser, getBookMarkedPosts, getCommentsOfAPost, getRepliesOfAComment };

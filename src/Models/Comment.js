@@ -10,8 +10,7 @@ const commentSchema = new mongoose.Schema({
         required:true
     },
     creationDateAndTime:{
-        type:Date,
-        default:Date.now()
+        type:Date
     },
     replies:[{
         type:mongoose.Schema.Types.ObjectId,
