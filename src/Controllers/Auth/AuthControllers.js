@@ -10,7 +10,7 @@ const { Student } = require("../../Models/peoples/Student");
 const { Instructor } = require("../../Models/peoples/Instructor");
 
 
-
+const FRONT_END_URL = process.env.FRONT_END_URL
 
 
 const Signup = async (req, res) => {
@@ -259,7 +259,7 @@ const passwordChangeRequest = async (req, res) => {
         const dataArray = [...encryptedData].map((char) => encodeURIComponent(char));
 
        
-        const url = `http://localhost:3000/reset-password?key=${dataArray.join('')}`;
+        const url = `${FRONT_END_URL}/reset-password?key=${dataArray.join('')}`;
         
 
         const name = user.firstName + " " + (user.middleName?user.middleName:"") + " " + user.lastName+" "+`(${user.username})`;
