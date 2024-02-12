@@ -42,6 +42,7 @@ const userSchema = new mongoose.Schema({
         default:[],
         ref:"education"
     }],
+    //changed from experience to experiences
     experience:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:"experience"
