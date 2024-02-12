@@ -2,4 +2,8 @@
 const ROLE_INSTRUCTOR = 'instructor'
 const ROLE_STUDENT = 'student'
 
-module.exports = {ROLE_INSTRUCTOR, ROLE_STUDENT}
+const currency = {
+    INR:'inr'
+}
+
+module.exports = {ROLE_INSTRUCTOR, ROLE_STUDENT, currency}
