@@ -1,16 +1,16 @@
 const mongoose = require("mongoose")
 
 const repeatingSlots = new mongoose.Schema({
-    startDate:{
-        type:Date,
-        required:true
-    },
     startTime:{
         type:Date,
         required:true
     },
-    meetEndTime:{
+    endTime:{
         type:Date,
+        required:true
+    },
+    day:{
+        type:String,
         required:true
     },
     bookings:[{

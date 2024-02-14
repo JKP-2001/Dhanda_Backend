@@ -27,6 +27,7 @@ const passport = require("passport");
 
 const session = require('express-session');
 const microsoftAuthRouter = require("./Routes/Auth/MicrosoftAuth");
+const bookingRouter = require("./Routes/booking");
 
 
 
@@ -103,6 +104,8 @@ app.use(BASE_URL + "interviewers", interviwerRouter);
 app.use(BASE_URL + "auth", authRouter);
 
 app.use(BASE_URL + "user", userRouter);
+
+app.use(BASE_URL + "bookings", bookingRouter);
 
 app.use(googleAuthRouter);
 

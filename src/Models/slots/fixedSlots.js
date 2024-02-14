@@ -9,6 +9,10 @@ const fixedSlotSchema = new mongoose.Schema({
         type:Date,
         required:true
     },
+    day:{
+        type:String,
+        required:true
+    },
     isBooked:{
         type:Boolean,
         default:false
@@ -19,6 +23,6 @@ const fixedSlotSchema = new mongoose.Schema({
     } 
 })
 
-const FixedSlot = mongoose.model("fixedSlots",fixedSlotSchema)
+const FixedSlots = mongoose.model("fixedSlots",fixedSlotSchema)
 
-module.exports =  {FixedSlot}
+module.exports =  {FixedSlots}

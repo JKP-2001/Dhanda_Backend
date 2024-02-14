@@ -66,7 +66,7 @@ const userSchema = new mongoose.Schema({
     ],
     companies:[{
         type:String,
-        default:""
+        default:[]
     }],
     profiles:[{
         type:String,
