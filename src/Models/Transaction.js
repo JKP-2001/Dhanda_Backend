@@ -50,13 +50,15 @@ const transactionSchema = new mongoose.Schema(
             type:String
         },
         razorpayOrderId:{
-            type:String
+            type:String,
+            unique:true
         },
         razorpayOrderIdTimestamp:{
             type:Date
         },
         razorpayPaymentId:{
-            type:String
+            type:String,
+            unique:true
         },
         razorpaySignature:{
             type:String

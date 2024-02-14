@@ -75,7 +75,11 @@ async function generateOrderIdController(req,res){
         await createPendingTransaction({...options,order:order.id, createdAt:order.created_at,studentId})
         await checkSlotStatus()
         const data = {
-            orderId: order.id
+            orderId: order.id,
+            keyId: process.env.RAZORPAY_KEY_ID,
+            name: 'Interview Hub',
+            amount: req.body.amount,
+            currency: req.body.currency
         }
         let result = {success:true,data}
         res.status(200).json(result)

@@ -88,7 +88,6 @@ if (process.env.DEVELOPMENT === 'true'){
     app.post('/convert', getEncryptedController)
 }
 
-
 app.use((req, res, next) => {
   if (
     req.originalMethod !== "GET" &&
@@ -99,6 +98,7 @@ app.use((req, res, next) => {
   }
   next();
 });
+
 
 
 app.use(DecryptReq);

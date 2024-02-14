@@ -124,10 +124,10 @@ async function interviewerListController(req, res) {
 
         if (process.env.DEVELOPMENT === 'false')
             results = EncryptRes(results);
-        res.status(200).json(results);
+        res.status(200).json({success:true, data:results});
     } catch (e) {
         console.error('Error at interviewer list controller : ', e)
-        res.status(400).json({success:false, msg:e})
+        res.status(400).json({success:false, msg:e.toString()})
     }
 }
 
