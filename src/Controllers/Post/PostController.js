@@ -26,6 +26,7 @@ const s3 = new AWS.S3({
 });
 
 const deleteS3Files = async (imageUrls) => {
+
     const deletePromises = imageUrls.map(async (url) => {
         const key = url.split('/').pop(); // Assuming the key is the last part of the URL
         const params = {
@@ -36,7 +37,34 @@ const deleteS3Files = async (imageUrls) => {
     });
 
     await Promise.all(deletePromises);
+
 };
+
+
+const uploadFilesToAWS = async (files) => {
+    const uploadPromises = files.map(async (file) => {
+        const params = {
+            Bucket: 'mock-interview',
+            Key: file.originalname,
+            Body: file.buffer,
+        };
+
+        return new Promise((resolve, reject) => {
+            s3.upload(params, (err, data) => {
+                if (err) {
+                    console.error(err);
+                    reject(`Error uploading file ${file.originalname}`);
+                } else {
+                    resolve(data.Location || ''); // Ensure to handle the case when Location is undefined
+                }
+            });
+        });
+    });
+
+    const uploadedUrls = await Promise.all(uploadPromises.filter(url => url !== '')); // Filter out empty URLs
+
+    return uploadedUrls;
+}
 
 
 const getImageUrls = (files) => {
@@ -55,7 +83,7 @@ const createNewPost = async (req, res) => {
 
     try {
 
-        
+
 
 
         const people = getPeople(req.role);
@@ -68,29 +96,10 @@ const createNewPost = async (req, res) => {
 
         const files = req.files;
 
-        const uploadPromises = files.map(async (file) => {
-            const params = {
-                Bucket: 'mock-interview',
-                Key: file.originalname,
-                Body: file.buffer,
-            };
-        
-            return new Promise((resolve, reject) => {
-                s3.upload(params, (err, data) => {
-                    if (err) {
-                        console.error(err);
-                        reject(`Error uploading file ${file.originalname}`);
-                    } else {
-                        resolve(data.Location || ''); // Ensure to handle the case when Location is undefined
-                    }
-                });
-            });
-        });
-        
-        const uploadedUrls = await Promise.all(uploadPromises.filter(url => url !== '')); // Filter out empty URLs
-        
+        const uploadedUrls = await uploadFilesToAWS(files);
 
-        console.log({ uploadedUrls });
+
+
 
         const post = await Post.create({
             content: req.body.content,
@@ -100,15 +109,6 @@ const createNewPost = async (req, res) => {
             updatedAt: Date.now(),
         });
 
-        // var imageUrls = getImageUrls(files);
-
-        // const post = await Post.create({
-        //     content: req.body.content,
-        //     author: user._id,
-        //     images: imageUrls,
-        //     refModel: req.role,
-        //     updatedAt: Date.now()
-        // })
 
         await people.findOneAndUpdate({ _id: user._id }, { $push: { posts: post._id } });
 
@@ -355,24 +355,23 @@ const updateAPost = async (req, res) => {
 
         let imageUrls = post.images;
 
-        const filesToBeDeleted = req.body.filesToBeDeleted;
+        const filesToBeDeleted = JSON.parse(req.body.filesToBeDeleted);
+
+        // console.log({filesToBeDeleted})
 
 
-        if (filesToBeDeleted) {
-            let convertedFiles = filesToBeDeleted.replace(/\\\\/g, '/');
-            convertedFiles = JSON.parse(convertedFiles);
-            for (let i = 0; i < convertedFiles.length; i++) {
-                const filePath = convertedFiles[i];
-                imageUrls = imageUrls.filter(url => (url.replace(/\\/g, '/')) !== filePath);
-                fs.unlinkSync(filePath);
-            }
+        if (filesToBeDeleted.length > 0) {
+            imageUrls = imageUrls.filter(url => !filesToBeDeleted.includes(url));
+            deleteS3Files(filesToBeDeleted);
         }
 
         if (req.files) {
-            const newImageUrls = getImageUrls(req.files);
-
-            imageUrls = imageUrls.concat(newImageUrls);
+            const files = req.files;
+            const uploadedUrls = await uploadFilesToAWS(files); //Filter out empty URLs
+            imageUrls = imageUrls.concat([...uploadedUrls]);
         }
+
+      
 
         await Post.findByIdAndUpdate(postId, {
             content: req.body.content,
@@ -415,7 +414,7 @@ const deleteAPost = async (req, res) => {
 
         const imageUrls = post.images;
 
-        
+
 
         await deleteS3Files(imageUrls);
 
@@ -545,7 +544,7 @@ const commentOnAPost = async (req, res) => {
     try {
         const people = getPeople(req.role);
 
-        
+
 
         const user = await people.findOne({ email: req.userEmail });
 
@@ -566,7 +565,7 @@ const commentOnAPost = async (req, res) => {
             author_id: user._id,
             refModel: req.role,
             post_id: postId,
-            creationDateAndTime:Date.now()
+            creationDateAndTime: Date.now()
         };
 
         const newComment = await Comment.create(comment);
@@ -582,7 +581,7 @@ const commentOnAPost = async (req, res) => {
 
 
 const getCommentsOfAPost = async (req, res) => {
-    
+
     try {
 
         const postId = req.params.id;
@@ -660,7 +659,7 @@ const replyOnComment = async (req, res) => {
             author_id: user._id,
             refModel: req.role,
             comment_id: commentId,
-            creationDateAndTime:Date.now()
+            creationDateAndTime: Date.now()
         }
 
         const newReply = await Reply.create(reply);

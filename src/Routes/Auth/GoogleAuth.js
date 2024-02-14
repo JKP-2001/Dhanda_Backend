@@ -125,10 +125,11 @@ googleAuthRouter.get('/auth/google/callback',
 
     const unique = encryptToJson(unique_data, process.env.ENCRYPT_KEY);
 
+    const urlEncryptedToken = encodeURIComponent(unique);
 
     res.cookie('authToken', unique, { secure: true, sameSite: 'None' });
 
-    res.redirect(`${FRONT_END_URL}/google/auth/callback?status=success`);
+    res.redirect(`${FRONT_END_URL}/google/auth/callback?status=success&token=${urlEncryptedToken}`);
   }
 );
 
@@ -138,7 +139,7 @@ googleAuthRouter.get('/auth/google/logout', (req, res, next) => {
 
   try {
     const authToken = req.cookies.authToken;
-    console.log({ authToken })
+
 
     if (!authToken) {
       throw new Error("authToken not found");

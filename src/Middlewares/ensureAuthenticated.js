@@ -9,7 +9,7 @@ function ensureAuthenticated(req, res, next) {
    
     if (authToken) {
       // User is already authenticated, redirect as needed
-      res.redirect(`${process.env.FRONT_END_URL}/google/auth/callback?status=success`);
+      res.redirect(`${process.env.FRONT_END_URL}/google/auth/callback?status=success&token=${authToken}`);
     } else {
       // User is not authenticated, proceed to the next middleware/route
       return next();
