@@ -21,8 +21,6 @@ process.env.AWS_SDK_JS_SUPPRESS_MAINTENANCE_MODE_MESSAGE = '1';
 
 const PORT = process.env.PORT;
 
-const DB_URI = process.env.DB_URI;
-
 const BASE_URL = process.env.BASE_URL;
 
 const passport = require("passport");
@@ -31,6 +29,8 @@ const session = require('express-session');
 const microsoftAuthRouter = require("./Routes/Auth/MicrosoftAuth");
 const postRouter = require("./Routes/Post/PostRoutes");
 const { getEncryptedController } = require("./Controllers/dev_controllers/GetEncryptedController");
+const { transactionsRouter } = require("./Routes/Transactions/Transactions");
+const { connectMongoDb } = require("./configs/configureMongoDb");
 
 
 
@@ -88,7 +88,6 @@ if (process.env.DEVELOPMENT === 'true'){
     app.post('/convert', getEncryptedController)
 }
 
-
 app.use((req, res, next) => {
   if (
     req.originalMethod !== "GET" &&
@@ -101,16 +100,10 @@ app.use((req, res, next) => {
 });
 
 
+
 app.use(DecryptReq);
 
-const connect = async () => {
-  try {
-    const conn = await mongoose.connect(DB_URI);
-    console.log("DB connected successfully");
-  } catch (err) {
-    console.log(err.toString());
-  }
-};
+connectMongoDb()
 
 app.use(BASE_URL + "interviewers", interviwerRouter);
 
@@ -124,6 +117,8 @@ app.use(googleAuthRouter);
 
 app.use(microsoftAuthRouter);
 
+app.use(BASE_URL + "transactions", transactionsRouter)
+
 app.listen(PORT, async (err) => {
   const temp = getCurrentDate();
 
@@ -136,7 +131,7 @@ app.listen(PORT, async (err) => {
     
     console.log(`server started on ${temp}`);
     console.log("DB Connection Started");
-    await connect();
+    await connectMongoDb();
     console.log(`server started on port ${PORT}`);
     console.log('\x1b[34m%s\x1b[0m', 'View the apis at localhost:5000/api-docs');
 
