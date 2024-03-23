@@ -84,8 +84,6 @@ const createNewPost = async (req, res) => {
     try {
 
 
-
-
         const people = getPeople(req.role);
 
         const user = await people.findOne({ email: req.userEmail });
@@ -112,7 +110,7 @@ const createNewPost = async (req, res) => {
 
         await people.findOneAndUpdate({ _id: user._id }, { $push: { posts: post._id } });
 
-        res.status(200).json({ success: true, msg: "Post created successfully" });
+        res.status(200).json({ success: true, msg: "Post created successfully", id:post._id });
     } catch (err) {
         res.status(400).json({ success: false, msg: err.toString() })
     }
