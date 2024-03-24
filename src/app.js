@@ -31,6 +31,7 @@ const postRouter = require("./Routes/Post/PostRoutes");
 const { getEncryptedController } = require("./Controllers/dev_controllers/GetEncryptedController");
 const { transactionsRouter } = require("./Routes/Transactions/Transactions");
 const { connectMongoDb } = require("./configs/configureMongoDb");
+const meetingRouter = require("./Routes/Meeting/meetingRoutes");
 
 
 
@@ -118,6 +119,8 @@ app.use(googleAuthRouter);
 app.use(microsoftAuthRouter);
 
 app.use(BASE_URL + "transactions", transactionsRouter)
+
+// app.use(BASE_URL, meetingRouter)
 
 app.listen(PORT, async (err) => {
   const temp = getCurrentDate();

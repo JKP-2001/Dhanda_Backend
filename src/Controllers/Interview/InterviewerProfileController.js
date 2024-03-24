@@ -71,8 +71,6 @@ async function InterviewerProfileController(req, res) {
     catch (err) {
         console.error('ERROR: At InterviewProfileController function. \n', err, '\n')
     }
-
-
 }
 
 module.exports = InterviewerProfileController

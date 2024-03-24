@@ -4,18 +4,19 @@ const { Transaction } = require("../../Models/Transaction");
 async function createPendingTransaction(obj){
     obj.studentId ??= null
     obj.instructorId ??= null
-    const document = new Transaction({
+    const document = await Transaction.create({
         amount:obj.amount,
         sender: 'student',
         senderId:obj.studentId,
-        receiver: 'admin',
+        receiverId:obj.instructorId,
         status: 'pending',
         invoice: obj.receipt,
         razorpayOrderId:obj.order,
-        razorpayOrderIdTimestamp: obj.createdAt,
+        razorpayOrderIdTimestamp: Date.now(),
         currency:obj.currency,
     })
-    await document.save()
+
+    return document._id;
 }
 
 

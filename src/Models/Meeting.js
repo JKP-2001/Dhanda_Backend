@@ -9,8 +9,8 @@ const meetingSchema = new mongoose.Schema({
         type:Date,
         reuqired:true
     },
-    endTime:{
-        type:Date,
+    duration:{
+        type:String,
         required:true
     },
     participant:[
@@ -24,6 +24,10 @@ const meetingSchema = new mongoose.Schema({
         type:String,
         required:true,
         enum:['student','instructor']
+    },
+    transaction_id:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"transaction"
     }
 })
 
