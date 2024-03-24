@@ -1,3 +1,4 @@
+const { Meeting } = require("../../Models/Meeting");
 const { Transaction } = require("../../Models/Transaction");
 const { Instructor } = require("../../Models/peoples/Instructor");
 const { Student } = require("../../Models/peoples/Student");
@@ -42,7 +43,7 @@ async function verifyPaymentController(req,res){
 
             console.log("Creating meeting.........");
 
-            const meeting = await createMeeting(req.body.startTime, req.body.topic, req.body.duration, instructor.firstName+" "+instructor.lastName, student.firstName+" "+student.lastName, student.email, instructor.email);
+            const meeting = await createMeeting(req.body.orderDetails.startTime, req.body.orderDetails.topic, req.body.orderDetails.duration, instructor.firstName+" "+instructor.lastName, student.firstName+" "+student.lastName, student.email, instructor.email);
 
             console.log("Meeting created.........", meeting);
             
@@ -55,6 +56,22 @@ async function verifyPaymentController(req,res){
                 senderId:transaction.senderId,
                 receiverId:transaction.receiverId
             })
+
+
+            const createNewMeeting = await Meeting.create({
+                title: req.body.orderDetails.topic,
+                startTime: req.body.orderDetails.startTime,
+                duration: req.body.orderDetails.duration,
+                studentId: student._id,
+                instructorId: instructor._id,
+                meeting_link: meeting.meeting_url,
+                transaction_id: transactionId
+            })
+
+            await Student.findOneAndUpdate({ _id: student._id }, { $push: { meetingScheduled: createNewMeeting._id } });
+            await Instructor.findOneAndUpdate({ _id: instructor._id }, { $push: { meetingScheduled: createNewMeeting._id } });
+
+
 
             res.status(200).json({success:true, msg:'Payment verified successfully', meeting:meeting})
         }

@@ -80,10 +80,10 @@ const createMeeting = async (startTime, topic, duration, interviewerName, studen
         const time = content.meetingTime.split('T')[1].split(':')[0] + ':' + content.meetingTime.split('T')[1].split(':')[1];
 
         console.log("Sending mail....")
-        await sendMail(studentEmail, 'Interview Details', interviewerName, studentName,   date, time, content.meeting_url, "", "", content.password);
+        await sendMail(studentEmail, 'Mock Interview with '+ interviewerName, interviewerName, studentName,   date, time, content.meeting_url, "", "", content.password, content.id);
 
         console.log("Sending mail....")
-        await sendMail(hostEmail, 'Interview Details',  studentName, interviewerName, date, time, content.meeting_url, "", "", content.password);
+        await sendMail(hostEmail, 'Mock Interview with '+ studentName,  studentName, interviewerName, date, time, content.meeting_url, "", "", content.password, content.id);
 
         return content
     } catch (error) {

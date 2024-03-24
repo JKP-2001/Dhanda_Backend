@@ -32,7 +32,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const sendMail = async (receiver, subject, username, studentName="", date="", time="", link = "", otp = "", type = "", meetPass = "") => {
+const sendMail = async (receiver, subject, username, studentName="", date="", time="", link = "", otp = "", type = "", meetPass = "", meetId="") => {
 
 
     try {
@@ -71,7 +71,8 @@ const sendMail = async (receiver, subject, username, studentName="", date="", ti
                 date: date,
                 time: time,
                 link: link,
-                pass:meetPass
+                pass:meetPass,
+                meetId:meetId
             };
         }
 
