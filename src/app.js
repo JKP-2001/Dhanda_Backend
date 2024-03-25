@@ -120,7 +120,9 @@ app.use(microsoftAuthRouter);
 
 app.use(BASE_URL + "transactions", transactionsRouter)
 
-// app.use(BASE_URL, meetingRouter)
+
+
+app.use(BASE_URL, meetingRouter)
 
 app.listen(PORT, async (err) => {
   const temp = getCurrentDate();

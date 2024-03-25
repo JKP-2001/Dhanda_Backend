@@ -28,6 +28,17 @@ const meetingSchema = new mongoose.Schema({
     transaction_id:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"transaction"
+    },
+    calendarEvent:{
+        title:{
+            type:String
+        },
+        start:{
+            type:Date
+        },
+        end:{
+            type:Date
+        }
     }
 })
 

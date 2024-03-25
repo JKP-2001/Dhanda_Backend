@@ -1,5 +1,7 @@
 const axios = require('axios')
 const { sendMail } = require('../../Utils/SendMail')
+const { Meeting } = require('../../Models/Meeting')
+const { Transaction } = require('../../Models/Transaction')
 
 const ZOOM_ACCOUNT_ID = process.env.ZOOM_ACCOUNT_ID
 const ZOOM_CLIENT_ID = process.env.ZOOM_CLIENT_ID
@@ -12,6 +14,33 @@ const api_base_url = "https://api.zoom.us/v2/users/me/meetings"
 
 
 const timeZone = 'Asia/Kolkata';
+
+
+const getAllMeetings = async (meetingIdArray) => {
+    try {
+        const length = meetingIdArray.length;
+
+        var meetings = [];
+
+        for (let i = 0; i < length; i++) {
+            const meeting = await Meeting.findById(meetingIdArray[i]);
+            
+            if(meeting){
+                const transaction = await Transaction.findById(meeting.transaction_id);
+
+                if(transaction){
+                    if(transaction.status === 'successful'){
+                        meetings.push(meeting);
+                    }
+                }
+            }
+        }
+
+        return meetings
+    } catch (err) {
+        console.log(err)
+    }
+}
 
 
 const createMeeting = async (startTime, topic, duration, interviewerName, studentName, studentEmail, hostEmail) => {
@@ -92,7 +121,21 @@ const createMeeting = async (startTime, topic, duration, interviewerName, studen
 }
 
 
-module.exports = { createMeeting }
+const fetchUserMeetings = async (req,res) => {
+    try{
+        var meetingIdArray = req.body.meetingIdArray;
+        // meetingIdArray = JSON.parse(meetingIdArray);
+        const meetings = await getAllMeetings(meetingIdArray);
+
+        res.status(200).json({ success: true, data: meetings });
+    }catch(err){
+
+        res.status(400).json({ success: false, msg: err.toString() });
+    }
+}
+
+
+module.exports = { createMeeting, fetchUserMeetings }
 
 
 

@@ -19,7 +19,7 @@ const transactionSchema = new mongoose.Schema(
         },
         status:{
             type:String, 
-            enum:['pending', 'successful', 'failed']
+            enum:['pending', 'successful', 'failed', 'refunded']
         },
         invoice:{
             type:String
@@ -43,6 +43,12 @@ const transactionSchema = new mongoose.Schema(
         paymentDoneToReceiver:{
             type:Boolean,
             default:false
+        },
+        refundId:{
+            type:String
+        },
+        refundAt:{
+            type:Date
         }
     }
 )

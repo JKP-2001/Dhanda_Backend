@@ -43,6 +43,8 @@ async function verifyPaymentController(req,res){
 
             console.log("Creating meeting.........");
 
+            console.log({newEvent:req.body.newEvent})
+
             const meeting = await createMeeting(req.body.orderDetails.startTime, req.body.orderDetails.topic, req.body.orderDetails.duration, instructor.firstName+" "+instructor.lastName, student.firstName+" "+student.lastName, student.email, instructor.email);
 
             console.log("Meeting created.........", meeting);
@@ -65,7 +67,8 @@ async function verifyPaymentController(req,res){
                 studentId: student._id,
                 instructorId: instructor._id,
                 meeting_link: meeting.meeting_url,
-                transaction_id: transactionId
+                transaction_id: transactionId,
+                calendarEvent:req.body.orderDetails.newEvent
             })
 
             await Student.findOneAndUpdate({ _id: student._id }, { $push: { meetingScheduled: createNewMeeting._id } });
