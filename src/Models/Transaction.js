@@ -9,42 +9,17 @@ const transactionSchema = new mongoose.Schema(
             type:Number,
             required:true
         },
-        sender:{
-            type:String,
-            enum:['instructor', 'student','admin'],
-            required:true
-        },
         senderId:{
             type:mongoose.Schema.Types.ObjectId,
-            validate:{
-                validator:function(value){
-                    console.log('value in validator is ', value)
-                    if (this.sender === 'instructor' || this.sender === 'student')
-                        return mongoose.Types.ObjectId.isValid(value)
-                    return true
-                },
-                message: "valid senderId is required for student or instructor sender type"
-            }
-        },
-        receiver:{
-            type:String,
-            enum:['instructor', 'student','admin'],
-            required:true
+            ref:'student'
         },
         receiverId:{
             type:mongoose.Schema.Types.ObjectId,
-            validate:{
-                validator:function(value){
-                    if (this.receiver=== 'instructor' || this.receiver=== 'student')
-                        return mongoose.Types.ObjectId.isValid(value)
-                    return true
-                },
-                message: "valid receiverId is required for student or instructor receiver type"
-            }
+            ref:"instructor"
         },
         status:{
             type:String, 
-            enum:['pending', 'successful', 'failed']
+            enum:['pending', 'successful', 'failed', 'refunded']
         },
         invoice:{
             type:String
@@ -57,16 +32,24 @@ const transactionSchema = new mongoose.Schema(
             type:Date
         },
         razorpayPaymentId:{
-            type:String,
-            unique:true
+            type:String
         },
         razorpaySignature:{
             type:String
         },
         currency:{
             type:String
+        },
+        paymentDoneToReceiver:{
+            type:Boolean,
+            default:false
+        },
+        refundId:{
+            type:String
+        },
+        refundAt:{
+            type:Date
         }
-
     }
 )
 

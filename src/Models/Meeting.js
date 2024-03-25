@@ -9,21 +9,36 @@ const meetingSchema = new mongoose.Schema({
         type:Date,
         reuqired:true
     },
-    endTime:{
-        type:Date,
+    duration:{
+        type:String,
         required:true
     },
-    participant:[
-        {type:mongoose.Schema.Types.ObjectId, default:[], refPath:"refModel"},
-    ],
+    studentId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"student"
+    },
+    instructorId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"instructor"
+    },
     meeting_link:{
         type:String,
         required:true
     },
-    refModel:{
-        type:String,
-        required:true,
-        enum:['student','instructor']
+    transaction_id:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"transaction"
+    },
+    calendarEvent:{
+        title:{
+            type:String
+        },
+        start:{
+            type:Date
+        },
+        end:{
+            type:Date
+        }
     }
 })
 

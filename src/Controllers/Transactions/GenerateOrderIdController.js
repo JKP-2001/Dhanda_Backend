@@ -1,4 +1,5 @@
 const { razorpayInstance } = require("../../configs/ConfigureRazorpay")
+const crypto = require("crypto")
 const logger = require("../../helpers/Logger")
 const { createPendingTransaction, checkSlotStatus } = require("../../services/transactions/generateOrderIdServices")
 const { validateGenerateOrderId } = require("../../validations/Transactions/ValidateGenerateOrderId")
@@ -62,31 +63,35 @@ const { validateGenerateOrderId } = require("../../validations/Transactions/Vali
 async function generateOrderIdController(req,res){
     try {
         validateGenerateOrderId(req.body)
+        
         const options = {
             amount: req.body.amount,
             currency:req.body.currency,
-            // receipt:req.body.receipt
+            payment_capture: 1,
+            receipt: crypto.randomBytes(10).toString('hex'),
         }
+
+
         const order = await razorpayInstance.orders.create(options)
         console.log('order is ', order)
         const instructorId= req.body.instructorId
         const studentId = req.body.studentId
 
-        await createPendingTransaction({...options,order:order.id, createdAt:order.created_at,studentId})
+        const transactionId = await createPendingTransaction({...options,order:order.id, createdAt:order.created_at,studentId,instructorId});
+
         await checkSlotStatus()
-        const data = {
-            orderId: order.id,
-            keyId: process.env.RAZORPAY_KEY_ID,
-            name: 'Interview Hub',
-            amount: req.body.amount,
-            currency: req.body.currency
-        }
-        let result = {success:true,data}
-        res.status(200).json(result)
+
+        const newData = {...order, name: 'Interview Hub', 
+        transactionId}
+
+        let result = {success:true,data:newData}
+
+        res.status(200).json(result);
     }
     catch(e){
         logger('Error at GenerateOrderIdController :', e)
-        res.status(400).json({success:false, msg:e})
+        console.log({error:e});
+        res.status(400).json({success:false, msg:e.toString()})
     }
 }
 

@@ -32,7 +32,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const sendMail = async (receiver, subject, username, link = "", otp = "", type = "") => {
+const sendMail = async (receiver, subject, username, studentName="", date="", time="", link = "", otp = "", type = "", meetPass = "", meetId="") => {
 
 
     try {
@@ -55,11 +55,24 @@ const sendMail = async (receiver, subject, username, link = "", otp = "", type =
             };
         }
 
-        else if (link !== "") {
+        else if (link !== "" && studentName=="") {
             filePath = path.join(__dirname, "../Emails_Template/verify.html");
             replacements = {
                 name: username,
                 link: link
+            };
+        }
+
+        else{
+            filePath = path.join(__dirname, "../Emails_Template/meeting_confirmation.html");
+            replacements = {
+                name: username,
+                studentName: studentName,
+                date: date,
+                time: time,
+                link: link,
+                pass:meetPass,
+                meetId:meetId
             };
         }
 
