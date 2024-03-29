@@ -164,7 +164,7 @@ const fetchUserTransactions = async (req, res) => {
 
 
         const data = await Meeting.find({ _id: { $in: meetingScheduledIds } })
-            .select("transaction_id title")
+            .select("transaction_id title calendarEvent")
             .populate({
                 path: "transaction_id",
                 select: "_id status amount senderId invoice razorpayOrderId razorpayPaymentId refundId refundAt confirmTimestamp paymentDoneToReceiver",
@@ -176,7 +176,7 @@ const fetchUserTransactions = async (req, res) => {
             .skip((parseInt(page) - 1) * limit)
 
         // sort in descending order
-        
+
         const sortedData = data.sort((a, b) => new Date(b.transaction_id.confirmTimestamp) - new Date(a.transaction_id.confirmTimestamp));
 
         res.status(200).json({ success: true, data: sortedData, totalResult });
@@ -187,7 +187,113 @@ const fetchUserTransactions = async (req, res) => {
 }
 
 
-module.exports = { createMeeting, fetchUserMeetings, fetchUserTransactions }
+const usersMeetings = async (req, res) => {
+    try {
+        const people = getPeople(req.role);
+
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const meetingScheduledIds = user.meetingScheduled;
+
+        const type = req.query.type ? req.query.type : 'upcoming';
+
+        const page = req.query.page ? req.query.page : 1
+
+        const limit = req.query.limit ? parseInt(req.query.limit) : allPosts.length;
+
+        const rdata = await Meeting.find({ _id: { $in: meetingScheduledIds } });
+
+
+
+        let data;
+        let totalResult;
+
+        if (type === 'upcoming') {
+            data = await Meeting.find(
+                {
+                    _id: { $in: meetingScheduledIds },
+                    "calendarEvent.start": {
+                        $gt: new Date()
+                    }
+                })
+
+                .populate({
+                    path: "transaction_id",
+                    select: "_id status amount senderId invoice razorpayOrderId razorpayPaymentId refundId refundAt confirmTimestamp paymentDoneToReceiver",
+                    options: { sort: { "confirmTimestamp": -1 } } // Sort by confirmTimestamp in descending order
+                })
+                .populate({ path: "studentId", select: "firstName middleName lastName email _id" })
+                .populate({ path: "instructorId", select: "firstName middleName lastName email _id" })
+                .limit(parseInt(limit))
+                .skip((parseInt(page) - 1) * limit)
+
+            //reverse the data
+
+            
+
+            // const x = await Meeting.
+
+            const temp = await Meeting.find(
+                {
+                    _id: { $in: meetingScheduledIds },
+                    "calendarEvent.start": {
+                        $gt: new Date()
+                    }
+                })
+
+            totalResult = temp.length
+
+            // const sortedData = data.sort((a, b) => new Date(b.transaction_id.confirmTimestamp) - new Date(a.transaction_id.confirmTimestamp));
+        }
+
+        else{
+            data = await Meeting.find(
+                {
+                    _id: { $in: meetingScheduledIds },
+                    "calendarEvent.start": {
+                        $lt: new Date()
+                    }
+                })
+                .populate({
+                    path: "transaction_id",
+                    select: "_id status amount senderId invoice razorpayOrderId razorpayPaymentId refundId refundAt confirmTimestamp paymentDoneToReceiver",
+                    options: { sort: { "confirmTimestamp": -1 } } // Sort by confirmTimestamp in descending order
+                })
+                .populate({ path: "studentId", select: "firstName middleName lastName email _id" })
+                .populate({ path: "instructorId", select: "firstName middleName lastName email _id" })
+                .limit(parseInt(limit))
+                .skip((parseInt(page) - 1) * limit)
+
+                const temp = await Meeting.find(
+                    {
+                        _id: { $in: meetingScheduledIds },
+                        "calendarEvent.start": {
+                            $lt: new Date()
+                        }
+                    }
+                )
+
+                data = data.reverse();
+
+                totalResult = temp.length;
+
+        }
+
+
+
+        res.status(200).json({ success: true, data: data, totalResult });
+
+    } catch (err) {
+        res.status(400).json({ success: false, msg: err.toString() });
+    }
+}
+
+
+module.exports = { createMeeting, fetchUserMeetings, fetchUserTransactions, usersMeetings }
 
 
 
