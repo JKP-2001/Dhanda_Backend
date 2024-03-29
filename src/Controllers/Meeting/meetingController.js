@@ -2,6 +2,8 @@ const axios = require('axios')
 const { sendMail } = require('../../Utils/SendMail')
 const { Meeting } = require('../../Models/Meeting')
 const { Transaction } = require('../../Models/Transaction')
+const { getPeople } = require('../../helpers/HelperFunctions')
+const Paginator = require('../../helpers/Paginator')
 
 const ZOOM_ACCOUNT_ID = process.env.ZOOM_ACCOUNT_ID
 const ZOOM_CLIENT_ID = process.env.ZOOM_CLIENT_ID
@@ -24,12 +26,12 @@ const getAllMeetings = async (meetingIdArray) => {
 
         for (let i = 0; i < length; i++) {
             const meeting = await Meeting.findById(meetingIdArray[i]);
-            
-            if(meeting){
+
+            if (meeting) {
                 const transaction = await Transaction.findById(meeting.transaction_id);
 
-                if(transaction){
-                    if(transaction.status === 'successful'){
+                if (transaction) {
+                    if (transaction.status === 'successful') {
                         meetings.push(meeting);
                     }
                 }
@@ -50,8 +52,8 @@ const createMeeting = async (startTime, topic, duration, interviewerName, studen
 
         const encoded = Buffer.from(ZOOM_CLIENT_ID + ':' + ZOOM_CLIENT_SECRET).toString('base64');
 
-        
-        
+
+
         const authResponse = await axios.post(token_link, null, {
             headers: {
                 'Authorization': `Basic ${encoded}`,
@@ -109,10 +111,10 @@ const createMeeting = async (startTime, topic, duration, interviewerName, studen
         const time = content.meetingTime.split('T')[1].split(':')[0] + ':' + content.meetingTime.split('T')[1].split(':')[1];
 
         console.log("Sending mail....")
-        await sendMail(studentEmail, 'Mock Interview with '+ interviewerName, interviewerName, studentName,   date, time, content.meeting_url, "", "", content.password, content.id);
+        await sendMail(studentEmail, 'Mock Interview with ' + interviewerName, interviewerName, studentName, date, time, content.meeting_url, "", "", content.password, content.id);
 
         console.log("Sending mail....")
-        await sendMail(hostEmail, 'Mock Interview with '+ studentName,  studentName, interviewerName, date, time, content.meeting_url, "", "", content.password, content.id);
+        await sendMail(hostEmail, 'Mock Interview with ' + studentName, studentName, interviewerName, date, time, content.meeting_url, "", "", content.password, content.id);
 
         return content
     } catch (error) {
@@ -121,21 +123,71 @@ const createMeeting = async (startTime, topic, duration, interviewerName, studen
 }
 
 
-const fetchUserMeetings = async (req,res) => {
-    try{
+const fetchUserMeetings = async (req, res) => {
+    try {
         var meetingIdArray = req.body.meetingIdArray;
         // meetingIdArray = JSON.parse(meetingIdArray);
         const meetings = await getAllMeetings(meetingIdArray);
 
         res.status(200).json({ success: true, data: meetings });
-    }catch(err){
+    } catch (err) {
 
         res.status(400).json({ success: false, msg: err.toString() });
     }
 }
 
+const fetchUserTransactions = async (req, res) => {
+    try {
+        const people = getPeople(req.role);
 
-module.exports = { createMeeting, fetchUserMeetings }
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const meetingScheduledIds = user.meetingScheduled;
+
+        // console.log({ meetingScheduledIds });
+
+        // below code doesnt fetching all ids present in the array
+
+        const page = req.query.page ? req.query.page : 1
+
+        const limit = req.query.limit ? parseInt(req.query.limit) : allPosts.length;
+
+        const rdata = await Meeting.find({ _id: { $in: meetingScheduledIds } });
+
+        // console.log({rdata});
+
+        const totalResult = rdata.length;
+
+
+        const data = await Meeting.find({ _id: { $in: meetingScheduledIds } })
+            .select("transaction_id title")
+            .populate({
+                path: "transaction_id",
+                select: "_id status amount senderId invoice razorpayOrderId razorpayPaymentId refundId refundAt confirmTimestamp paymentDoneToReceiver",
+                options: { sort: { "confirmTimestamp": -1 } } // Sort by confirmTimestamp in descending order
+            })
+            .populate({ path: "studentId", select: "firstName middleName lastName email _id" })
+            .populate({ path: "instructorId", select: "firstName middleName lastName email _id" })
+            .limit(parseInt(limit))
+            .skip((parseInt(page) - 1) * limit)
+
+        // sort in descending order
+        
+        const sortedData = data.sort((a, b) => new Date(b.transaction_id.confirmTimestamp) - new Date(a.transaction_id.confirmTimestamp));
+
+        res.status(200).json({ success: true, data: sortedData, totalResult });
+
+    } catch (err) {
+        res.status(400).json({ success: false, msg: err.toString() });
+    }
+}
+
+
+module.exports = { createMeeting, fetchUserMeetings, fetchUserTransactions }
 
 
 
