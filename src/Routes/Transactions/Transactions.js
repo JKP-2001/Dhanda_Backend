@@ -1,3 +1,4 @@
+const { exportTransactionDataToCSV } = require('../../Controllers/Meeting/meetingController')
 const { generateOrderIdController } = require('../../Controllers/Transactions/GenerateOrderIdController')
 const { refund } = require('../../Controllers/Transactions/refundPaymentController')
 const { verifyPaymentController } = require('../../Controllers/Transactions/verifyPaymentController')
@@ -10,5 +11,7 @@ transactionsRouter.post("/generate-order-id", checkUser, generateOrderIdControll
 transactionsRouter.post('/verify-payment', verifyPaymentController)
 
 transactionsRouter.post('/refund', refund);
+
+transactionsRouter.get('/export', checkUser, exportTransactionDataToCSV);
 
 module.exports = {transactionsRouter}

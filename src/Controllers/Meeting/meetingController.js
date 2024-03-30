@@ -1,9 +1,14 @@
 const axios = require('axios')
-const { sendMail } = require('../../Utils/SendMail')
+const { jsPDF } = require('jspdf')
+const { parse } = require('json2csv');
+require('jspdf-autotable')
+
+const { sendMail, sendAttachment } = require('../../Utils/SendMail')
 const { Meeting } = require('../../Models/Meeting')
 const { Transaction } = require('../../Models/Transaction')
 const { getPeople } = require('../../helpers/HelperFunctions')
 const Paginator = require('../../helpers/Paginator')
+const { convertISOtoTime, convertISOtoDate } = require('../../Utils/Constants')
 
 const ZOOM_ACCOUNT_ID = process.env.ZOOM_ACCOUNT_ID
 const ZOOM_CLIENT_ID = process.env.ZOOM_CLIENT_ID
@@ -152,34 +157,64 @@ const fetchUserTransactions = async (req, res) => {
 
         // below code doesnt fetching all ids present in the array
 
-        const page = req.query.page ? req.query.page : 1
 
-        const limit = req.query.limit ? parseInt(req.query.limit) : allPosts.length;
+        const month = req.query.month ? parseInt(req.query.month) : new Date().getMonth();
 
-        const rdata = await Meeting.find({ _id: { $in: meetingScheduledIds } });
+        // console.log({ month });
 
-        // console.log({rdata});
-
-        const totalResult = rdata.length;
+        const page = (req.query.page) ? parseInt(req.query.page) : 1
+        const limit = (req.query.limit) ? parseInt(req.query.limit) : 10;
 
 
-        const data = await Meeting.find({ _id: { $in: meetingScheduledIds } })
+        let totalResult = 0;
+
+
+        const monthStartDate = new Date(new Date().getFullYear(), month, 1);
+        const monthEndDate = new Date(new Date().getFullYear(), month + 1, 2);
+
+        if (page === 1) {
+            const tempdata = await Meeting.find({
+                _id: { $in: meetingScheduledIds },
+            })
+                .populate({
+                    path: "transaction_id",
+                    select: "confirmTimestamp",
+                })
+
+            const dataFiltered = tempdata.filter(meeting => {
+                const meetingDate = new Date(meeting.transaction_id.confirmTimestamp);
+                return meetingDate >= monthStartDate && meetingDate <= monthEndDate;
+            });
+
+
+            totalResult = dataFiltered.length;
+
+        }
+
+
+        const data = await Meeting.find({
+            _id: { $in: meetingScheduledIds },
+        })
             .select("transaction_id title calendarEvent")
             .populate({
                 path: "transaction_id",
                 select: "_id status amount senderId invoice razorpayOrderId razorpayPaymentId refundId refundAt confirmTimestamp paymentDoneToReceiver",
-                options: { sort: { "confirmTimestamp": -1 } } // Sort by confirmTimestamp in descending order
+                options: { sort: { "confirmTimestamp": -1 } }
             })
             .populate({ path: "studentId", select: "firstName middleName lastName email _id" })
             .populate({ path: "instructorId", select: "firstName middleName lastName email _id" })
-            .limit(parseInt(limit))
-            .skip((parseInt(page) - 1) * limit)
+            .skip((page - 1) * limit)
+            .limit(limit);
+        // extract meeting where confirmTimestamp is in between monthStartDate and monthEndDate
 
-        // sort in descending order
+        const dataFiltered = data.filter(meeting => {
+            const meetingDate = new Date(meeting.transaction_id.confirmTimestamp);
+            return meetingDate >= monthStartDate && meetingDate <= monthEndDate;
+        })
 
-        const sortedData = data.sort((a, b) => new Date(b.transaction_id.confirmTimestamp) - new Date(a.transaction_id.confirmTimestamp));
 
-        res.status(200).json({ success: true, data: sortedData, totalResult });
+
+        res.status(200).json({ success: true, data: dataFiltered, totalResult });
 
     } catch (err) {
         res.status(400).json({ success: false, msg: err.toString() });
@@ -233,7 +268,7 @@ const usersMeetings = async (req, res) => {
 
             //reverse the data
 
-            
+
 
             // const x = await Meeting.
 
@@ -250,7 +285,7 @@ const usersMeetings = async (req, res) => {
             // const sortedData = data.sort((a, b) => new Date(b.transaction_id.confirmTimestamp) - new Date(a.transaction_id.confirmTimestamp));
         }
 
-        else{
+        else {
             data = await Meeting.find(
                 {
                     _id: { $in: meetingScheduledIds },
@@ -268,18 +303,18 @@ const usersMeetings = async (req, res) => {
                 .limit(parseInt(limit))
                 .skip((parseInt(page) - 1) * limit)
 
-                const temp = await Meeting.find(
-                    {
-                        _id: { $in: meetingScheduledIds },
-                        "calendarEvent.start": {
-                            $lt: new Date()
-                        }
+            const temp = await Meeting.find(
+                {
+                    _id: { $in: meetingScheduledIds },
+                    "calendarEvent.start": {
+                        $lt: new Date()
                     }
-                )
+                }
+            )
 
-                data = data.reverse();
+            data = data.reverse();
 
-                totalResult = temp.length;
+            totalResult = temp.length;
 
         }
 
@@ -293,7 +328,100 @@ const usersMeetings = async (req, res) => {
 }
 
 
-module.exports = { createMeeting, fetchUserMeetings, fetchUserTransactions, usersMeetings }
+const exportTransactionDataToCSV = async (req, res) => {
+
+    try {
+
+        const people = getPeople(req.role);
+
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+
+
+        const tillMonth = req.query.month ? parseInt(req.query.month) : 1;
+
+
+        const month = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+        const currentDate = new Date().getDate();
+
+        // Create a new date by subtracting 'tillMonth' months from the current date
+        const targetDate = new Date(currentYear, month - tillMonth, currentDate);
+
+        var data;
+
+        if (user.role === 'instructor') {
+            data = await Transaction.find({
+                receiverId: user._id,
+            }).populate({
+                path: "senderId",
+                select: "firstName middleName lastName email _id",
+            })
+                .populate({ path: "receiverId", select: "firstName middleName lastName email _id" })
+
+
+        }
+
+        else {
+            data = await Transaction.find({
+                senderId: user._id,
+            }).populate({
+                path: "senderId",
+                select: "firstName middleName lastName email _id",
+            })
+                .populate({ path: "receiverId", select: "firstName middleName lastName email _id" })
+
+        }
+
+        const doc = new jsPDF();
+
+        // Set font style
+        doc.setFont('helvetica');
+
+        // Add content to the PDF
+        doc.setFontSize(12);
+        doc.text('Transaction Data', 10, 10);
+        doc.setFontSize(10);
+        const headers = ['Invoice_Number','Sender_ID', 'Receiver_ID', 'Amount', 'Currency', 'Payment_ID', 'Date', 'Time'];
+        const jsonData = data.map(transaction => ({
+            Invoice: transaction.invoice,
+            Sender: transaction.senderId._id,
+            Receiver: transaction.receiverId._id,
+            Amount: parseInt(transaction.amount)/100,
+            Currency: 'INR',
+            PaymentID: transaction.razorpayPaymentId,
+            Date: convertISOtoDate(transaction.confirmTimestamp),
+            Time: convertISOtoTime(transaction.confirmTimestamp)
+        }));
+
+        // Build the table
+        
+
+        const opts = { headers };
+        const csv = parse(jsonData, opts);
+
+        // Generate PDF as data URI
+        // const pdfDataURI = doc.output('datauristring');
+
+        res.status(200).json({ success:true, msg: "Alright! We'll share the file over email in next few minutes" });
+        // Finalize the PDF
+        console.log("sending....");
+        await sendAttachment(user.email, csv, user._id, user.email, user.role);
+        console.log("sent....");
+
+
+
+    } catch (err) {
+        res.status(400).json({ success: false, msg: err.toString() });
+    }
+}
+
+
+module.exports = { createMeeting, fetchUserMeetings, fetchUserTransactions, usersMeetings, exportTransactionDataToCSV };
 
 
 
