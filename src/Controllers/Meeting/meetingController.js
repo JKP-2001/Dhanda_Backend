@@ -388,14 +388,14 @@ const exportTransactionDataToCSV = async (req, res) => {
         doc.setFontSize(10);
         const headers = ['Invoice_Number','Sender_ID', 'Receiver_ID', 'Amount', 'Currency', 'Payment_ID', 'Date', 'Time'];
         const jsonData = data.map(transaction => ({
-            Invoice: transaction.invoice,
-            Sender: transaction.senderId._id,
-            Receiver: transaction.receiverId._id,
-            Amount: parseInt(transaction.amount)/100,
+            Invoice: transaction.invoice?transaction.invoice:"Not Found",
+            Sender: transaction.senderId?transaction.senderId._id?transaction.senderId._id:"Not Found":"Not Found",
+            Receiver: transaction.receiverId?transaction.receiverId._id?transaction.receiverId._id:"Not Found":"Not Found",
+            Amount: transaction.amount?parseInt(transaction.amount)/100:"Not Found",
             Currency: 'INR',
-            PaymentID: transaction.razorpayPaymentId,
-            Date: convertISOtoDate(transaction.confirmTimestamp),
-            Time: convertISOtoTime(transaction.confirmTimestamp)
+            PaymentID: transaction.razorpayPaymentId?transaction.razorpayPaymentId:"Not Found",
+            Date: transaction.confirmTimestamp?convertISOtoDate(transaction.confirmTimestamp):"Not Found",
+            Time: transaction.confirmTimestamp?convertISOtoTime(transaction.confirmTimestamp):"Not Found"
         }));
 
         // Build the table
