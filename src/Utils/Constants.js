@@ -8,12 +8,15 @@ const currency = {
 
 const convertISOtoDate = (isoString) => {
     const date = new Date(isoString);
-    // british format
+    // british format and Asia/Kolkata timezone
+
     const formattedDate = date.toLocaleDateString("en-GB", {
         day: 'numeric',
         month: 'short',
-        year: 'numeric'
-    });
+        year: 'numeric',
+        timeZone: 'Asia/Kolkata'
+    })
+    
     return formattedDate;
 }
 
@@ -23,7 +26,8 @@ const convertISOtoTime = (isoString) => {
     const formattedDate = date.toLocaleTimeString("en-GB", {
         hour: 'numeric',
         minute: 'numeric',
-        second: 'numeric'
+        second: 'numeric',
+        timeZone: 'Asia/Kolkata'
     });
     return formattedDate;
 }
