@@ -8,7 +8,8 @@ const { Meeting } = require('../../Models/Meeting')
 const { Transaction } = require('../../Models/Transaction')
 const { getPeople } = require('../../helpers/HelperFunctions')
 const Paginator = require('../../helpers/Paginator')
-const { convertISOtoTime, convertISOtoDate } = require('../../Utils/Constants')
+const { convertISOtoTime, convertISOtoDate } = require('../../Utils/Constants');
+const { DM } = require('../../Models/DM');
 
 const ZOOM_ACCOUNT_ID = process.env.ZOOM_ACCOUNT_ID
 const ZOOM_CLIENT_ID = process.env.ZOOM_CLIENT_ID
@@ -153,15 +154,7 @@ const fetchUserTransactions = async (req, res) => {
 
         const meetingScheduledIds = user.meetingScheduled;
 
-        // console.log({ meetingScheduledIds });
-
-        // below code doesnt fetching all ids present in the array
-
-
         const month = req.query.month ? parseInt(req.query.month) : new Date().getMonth();
-
-        // console.log({ month });
-
         const page = (req.query.page) ? parseInt(req.query.page) : 1
         const limit = (req.query.limit) ? parseInt(req.query.limit) : 10;
 
@@ -421,7 +414,82 @@ const exportTransactionDataToCSV = async (req, res) => {
 }
 
 
-module.exports = { createMeeting, fetchUserMeetings, fetchUserTransactions, usersMeetings, exportTransactionDataToCSV };
+const fetchUserDMTransactions = async (req, res) => {
+
+    try {
+
+        const people = getPeople(req.role);
+
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const dmIds = user.dms;
+
+        const month = req.query.month ? parseInt(req.query.month) : new Date().getMonth();
+        const page = (req.query.page) ? parseInt(req.query.page) : 1
+        const limit = (req.query.limit) ? parseInt(req.query.limit) : 10;
+
+
+        let totalResult = 0;
+
+
+        const monthStartDate = new Date(new Date().getFullYear(), month, 1);
+        const monthEndDate = new Date(new Date().getFullYear(), month + 1, 2);
+
+        if (page === 1) {
+            const tempdata = await DM.find({
+                _id: { $in: dmIds },
+            })
+                .populate({
+                    path: "transaction_id",
+                    select: "confirmTimestamp",
+                })
+
+            const dataFiltered = tempdata.filter(dm => {
+                const meetingDate = new Date(dm.transaction_id.confirmTimestamp);
+                return meetingDate >= monthStartDate && meetingDate <= monthEndDate;
+            });
+
+
+            totalResult = dataFiltered.length;
+
+        }
+
+
+        const data = await DM.find({
+            _id: { $in: dmIds },
+        })
+            .select("transaction_id title calendarEvent")
+            .populate({
+                path: "transaction_id",
+                select: "_id status amount senderId invoice razorpayOrderId razorpayPaymentId refundId refundAt confirmTimestamp paymentDoneToReceiver",
+                options: { sort: { "confirmTimestamp": -1 } }
+            })
+            .populate({ path: "senderId", select: "firstName middleName lastName email _id" })
+            .populate({ path: "receiverId", select: "firstName middleName lastName email _id" })
+            .skip((page - 1) * limit)
+            .limit(limit);
+        // extract meeting where confirmTimestamp is in between monthStartDate and monthEndDate
+
+        const dataFiltered = data.filter(dm => {
+            const meetingDate = new Date(dm.transaction_id.confirmTimestamp);
+            return meetingDate >= monthStartDate && meetingDate <= monthEndDate;
+        })
+
+
+
+        res.status(200).json({ success: true, data: dataFiltered, totalResult });
+
+    }catch(err){
+        res.status(400).json({ success: false, msg: err.toString() });
+    }
+}
+
+
+module.exports = { createMeeting, fetchUserMeetings, fetchUserTransactions, usersMeetings, exportTransactionDataToCSV, fetchUserDMTransactions };
 
 
 
