@@ -32,6 +32,7 @@ const { getEncryptedController } = require("./Controllers/dev_controllers/GetEnc
 const { transactionsRouter } = require("./Routes/Transactions/Transactions");
 const { connectMongoDb } = require("./configs/configureMongoDb");
 const meetingRouter = require("./Routes/Meeting/meetingRoutes");
+const { dmRouter } = require("./Routes/DM/dmRouter");
 
 
 
@@ -119,6 +120,8 @@ app.use(googleAuthRouter);
 app.use(microsoftAuthRouter);
 
 app.use(BASE_URL + "transactions", transactionsRouter)
+
+app.use(BASE_URL, dmRouter)
 
 
 

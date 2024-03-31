@@ -141,7 +141,8 @@ const userSchema = new mongoose.Schema({
     loginProvider:{
         type:String,
         default:""
-    }
+    },
+    dms:[{type:mongoose.Schema.Types.ObjectId, default:[], ref:"dm"}],
 })
 
 const Instructor = mongoose.model("instructor",userSchema)

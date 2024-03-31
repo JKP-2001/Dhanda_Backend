@@ -29,7 +29,7 @@ const checkUser = async (req, res, next) => {
         }
         const decryptedData = decryptFromJson(authToken, process.env.ENCRYPT_KEY);
 
-        console.log({decryptedData});
+        // console.log({decryptedData});
    
         const people = getPeople(decryptedData.role)
 
