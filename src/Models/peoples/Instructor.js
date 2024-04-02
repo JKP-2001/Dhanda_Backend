@@ -1,5 +1,16 @@
 const mongoose = require('mongoose')
 
+
+const timeSlotSchema = new mongoose.Schema({
+    monday: [{ type: String }],
+    tuesday: [{ type: String }],
+    wednesday: [{ type: String }],
+    thursday: [{ type: String }],
+    friday: [{ type: String }],
+    saturday: [{ type: String }],
+    sunday: [{ type: String }]
+});
+
 const userSchema = new mongoose.Schema({
     username:{
         type:String
@@ -78,10 +89,7 @@ const userSchema = new mongoose.Schema({
     followings:[
         {type:mongoose.Schema.Types.ObjectId, default:[], ref:"user"},
     ],
-    availableTimeslots:[{
-        type:String,
-        default:""
-    }],
+    availableTimeslots:{type:timeSlotSchema, default:{}},
     createdAt:{
         type:Date,
         default:Date.now   
