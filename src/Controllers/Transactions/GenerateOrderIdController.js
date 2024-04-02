@@ -76,8 +76,9 @@ async function generateOrderIdController(req, res) {
         console.log('order is ', order)
         const instructorId = req.body.instructorId
         const studentId = req.body.studentId
+        const service = req.body.service
 
-        const transactionId = await createPendingTransaction({ ...options, order: order.id, createdAt: order.created_at, studentId, instructorId });
+        const transactionId = await createPendingTransaction({ ...options, order: order.id, createdAt: order.created_at, studentId, instructorId, service });
 
         await checkSlotStatus()
 

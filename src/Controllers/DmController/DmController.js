@@ -17,6 +17,8 @@ const fetchDMOfUser = async (req, res) => {
         const page = req.query.page ? parseInt(req.query.page) : 1;
         const limit = req.query.limit?parseInt(req.query.limit) : 10;
 
+        
+
         let totalResult = 0;
         let dms;
 
@@ -31,7 +33,7 @@ const fetchDMOfUser = async (req, res) => {
                 }
             }
             else{
-                dms = await DM.find({ receiverId: user._id, isAnswered: false, transaction_id: { $exists: true } }).populate({path: "senderId", select:"_id firstName middleName lastName role email"}).populate({path: "receiverId", select:"_id firstName middleName lastName role email"}).
+                dms = await DM.find({ receiverId: user._id, isAnswered: false, transaction_id: { $exists: true } }).populate({path: "senderId", select:"_id firstName middleName lastName role email"}).populate({path: "receiverId", select:"_id firstName middleName lastName role email"})
                 skip((page - 1) * limit).limit(limit);
 
 
@@ -42,7 +44,7 @@ const fetchDMOfUser = async (req, res) => {
             }
         }else{
             if(user.role === "student"){
-                dms = await DM.find({ senderId: user._id, isAnswered: true, transaction_id: { $exists: true } }).populate({path: "senderId", select:"_id firstName middleName lastName role email"}).populate({path: "receiverId", select:"_id firstName middleName lastName role email"}).
+                dms = await DM.find({ senderId: user._id, isAnswered: true, transaction_id: { $exists: true } }).populate({path: "senderId", select:"_id firstName middleName lastName role email"}).populate({path: "receiverId", select:"_id firstName middleName lastName role email"}).sort({answerDateAndTime: -1}).
                 skip((page - 1) * limit).limit(limit);
 
 
@@ -51,7 +53,7 @@ const fetchDMOfUser = async (req, res) => {
                 }
             }
             else{
-                dms = await DM.find({ receiverId: user._id, isAnswered: true, transaction_id: { $exists: true } }).populate({path: "senderId", select:"_id firstName middleName lastName role email"}).populate({path: "receiverId", select:"_id firstName middleName lastName role email"}).
+                dms = await DM.find({ receiverId: user._id, isAnswered: true, transaction_id: { $exists: true } }).populate({path: "senderId", select:"_id firstName middleName lastName role email"}).populate({path: "receiverId", select:"_id firstName middleName lastName role email"}).sort({answerDateAndTime: -1}).
                 skip((page - 1) * limit).limit(limit);
 
 

@@ -55,7 +55,8 @@ async function verifyPaymentController(req,res){
                 razorpayPaymentId:req.body.orderDetails.paymentId,
                 razorpaySignature:req.body.orderDetails.signature,
                 senderId:transaction.senderId,
-                receiverId:transaction.receiverId
+                receiverId:transaction.receiverId,
+                paymentMode:req.body.orderDetails.paymentMethod
             })
 
 
@@ -131,7 +132,8 @@ async function verifyPaymentControllerForDM(req,res){
                 razorpayPaymentId:req.body.orderDetails.paymentId,
                 razorpaySignature:req.body.orderDetails.signature,
                 senderId:transaction.senderId,
-                receiverId:transaction.receiverId
+                receiverId:transaction.receiverId,
+                paymentMode:req.body.orderDetails.paymentMethod
             })
 
             

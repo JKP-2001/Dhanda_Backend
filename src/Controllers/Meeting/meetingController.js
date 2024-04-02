@@ -158,12 +158,16 @@ const fetchUserTransactions = async (req, res) => {
         const page = (req.query.page) ? parseInt(req.query.page) : 1
         const limit = (req.query.limit) ? parseInt(req.query.limit) : 10;
 
+        
+
 
         let totalResult = 0;
 
 
         const monthStartDate = new Date(new Date().getFullYear(), month, 1);
         const monthEndDate = new Date(new Date().getFullYear(), month + 1, 2);
+
+        
 
         if (page === 1) {
             const tempdata = await Meeting.find({
@@ -350,6 +354,10 @@ const exportTransactionDataToCSV = async (req, res) => {
         if (user.role === 'instructor') {
             data = await Transaction.find({
                 receiverId: user._id,
+                confirmTimestamp: {
+                    $gte: targetDate,
+                    $lte: new Date()
+                }
             }).populate({
                 path: "senderId",
                 select: "firstName middleName lastName email _id",
@@ -362,6 +370,10 @@ const exportTransactionDataToCSV = async (req, res) => {
         else {
             data = await Transaction.find({
                 senderId: user._id,
+                confirmTimestamp: {
+                    $gte: targetDate,
+                    $lte: new Date()
+                }
             }).populate({
                 path: "senderId",
                 select: "firstName middleName lastName email _id",
@@ -369,6 +381,8 @@ const exportTransactionDataToCSV = async (req, res) => {
                 .populate({ path: "receiverId", select: "firstName middleName lastName email _id" })
 
         }
+
+
 
         const doc = new jsPDF();
 
@@ -379,16 +393,18 @@ const exportTransactionDataToCSV = async (req, res) => {
         doc.setFontSize(12);
         doc.text('Transaction Data', 10, 10);
         doc.setFontSize(10);
-        const headers = ['Invoice_Number','Sender_ID', 'Receiver_ID', 'Amount', 'Currency', 'Payment_ID', 'Date', 'Time'];
+        const headers = ['Service Type','Invoice_Number','Sender_ID', 'Receiver_ID', 'Amount', 'Currency', 'Payment_ID', 'Payment Mode', 'Date', 'Time'];
         const jsonData = data.map(transaction => ({
+            ServiceType: transaction.service?transaction.service:"Not Found",
             Invoice: transaction.invoice?transaction.invoice:"Not Found",
             Sender: transaction.senderId?transaction.senderId._id?transaction.senderId._id:"Not Found":"Not Found",
             Receiver: transaction.receiverId?transaction.receiverId._id?transaction.receiverId._id:"Not Found":"Not Found",
             Amount: transaction.amount?parseInt(transaction.amount)/100:"Not Found",
             Currency: 'INR',
             PaymentID: transaction.razorpayPaymentId?transaction.razorpayPaymentId:"Not Found",
+            PaymentMode: transaction.paymentMode?transaction.paymentMode:"Not Found",
             Date: transaction.confirmTimestamp?convertISOtoDate(transaction.confirmTimestamp):"Not Found",
-            Time: transaction.confirmTimestamp?convertISOtoTime(transaction.confirmTimestamp):"Not Found"
+            Time: transaction.confirmTimestamp?convertISOtoTime(transaction.confirmTimestamp):"Not Found",
         }));
 
         // Build the table
