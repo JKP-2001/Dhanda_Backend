@@ -49,6 +49,12 @@ const transactionSchema = new mongoose.Schema(
         },
         refundAt:{
             type:Date
+        },
+        service:{
+            type:String
+        },
+        paymentMode:{
+            type:String
         }
     }
 )
