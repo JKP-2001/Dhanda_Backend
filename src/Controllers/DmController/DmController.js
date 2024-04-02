@@ -15,7 +15,7 @@ const fetchDMOfUser = async (req, res) => {
         const type = req.query.type ? req.query.type : "unanswered";
 
         const page = req.query.page ? parseInt(req.query.page) : 1;
-        const limit = req.query.limit?parseInt(req.query.limit) : 10;
+        const limit = req.query.limit? parseInt(req.query.limit) : 10;
 
         
 
@@ -34,7 +34,7 @@ const fetchDMOfUser = async (req, res) => {
             }
             else{
                 dms = await DM.find({ receiverId: user._id, isAnswered: false, transaction_id: { $exists: true } }).populate({path: "senderId", select:"_id firstName middleName lastName role email"}).populate({path: "receiverId", select:"_id firstName middleName lastName role email"})
-                skip((page - 1) * limit).limit(limit);
+                .skip((page - 1) * limit).limit(limit);
 
 
                 if(page === 1){
