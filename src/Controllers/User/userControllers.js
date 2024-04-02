@@ -170,4 +170,37 @@ const onBoardingProcess = async (req, res) => {
     }
 }
 
-module.exports = { getUserData, onBoardingProcess, getUserDataById };
+
+const handleTimeSlots = async (req, res) => {
+
+    try {
+        const role = getRoleFromReq(req)
+        const people = getPeople(role)
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        if(user.role!=="instructor"){
+            throw new Error("Only Instructors can handle time slots");
+        }
+
+        const availableTimeslots = req.body.availableTimeslots;
+        
+
+        await people.findByIdAndUpdate(
+            user._id,
+            {
+                availableTimeslots: availableTimeslots
+            }
+        )
+
+        res.status(200).json({ success: true, msg: "Time slots handled successfully" });
+
+    } catch (error) {
+        res.status(400).json({ success: false, msg: error.toString() });
+    }
+}
+
+module.exports = { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots };
