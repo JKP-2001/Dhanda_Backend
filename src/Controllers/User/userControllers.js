@@ -1,6 +1,8 @@
+const { Contact } = require("../../Models/Contact");
 const { Education } = require("../../Models/Education");
 const { Experience } = require("../../Models/Experience");
 const { Post } = require("../../Models/Posts");
+
 
 const { encryptToJson, decryptFromJson } = require("../../Utils/EncryptDecrypt");
 const { getPeople, getRoleFromReq } = require("../../helpers/HelperFunctions");
@@ -203,4 +205,24 @@ const handleTimeSlots = async (req, res) => {
     }
 }
 
-module.exports = { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots };
+
+const contactus = async (req, res) => {
+
+    try {
+        
+        await Contact.create({
+            email:req.body.email,
+            subject:req.body.subject,
+            message:req.body.message,
+            createdAt:Date.now()
+        })
+
+        res.status(200).json({success:true,msg:"Form is submitted successfully."})
+
+    } catch (error) {
+        console.error('ERROR at getuserData :',error)
+        res.status(400).json({ success:false, msg: error.toString() });
+    }
+}
+
+module.exports = { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots,contactus };

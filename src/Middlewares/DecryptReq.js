@@ -23,6 +23,7 @@ async function DecryptReq(req,res,next){
     if (req.query && req.query.hasOwnProperty('payload')){
         try {
             const decryptedQuery = decryptFromJson(req.query.payload)
+            
             req.query = decryptedQuery
         }
         catch(e){

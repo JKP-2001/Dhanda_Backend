@@ -1,9 +1,8 @@
 const { DM } = require("../../Models/DM");
 const { getPeople } = require("../../helpers/HelperFunctions");
 
-
 const fetchDMOfUser = async (req, res) => {
-    try{
+    try {
         const people = getPeople(req.role);
 
         const user = await people.findOne({ email: req.userEmail });
@@ -15,68 +14,129 @@ const fetchDMOfUser = async (req, res) => {
         const type = req.query.type ? req.query.type : "unanswered";
 
         const page = req.query.page ? parseInt(req.query.page) : 1;
-        const limit = req.query.limit? parseInt(req.query.limit) : 10;
-
-        
+        const limit = req.query.limit ? parseInt(req.query.limit) : 10;
 
         let totalResult = 0;
         let dms;
 
-        if(type === "unanswered"){
-            if(user.role === "student"){
-                dms = await DM.find({ senderId: user._id, isAnswered: false, transaction_id: { $exists: true } }).populate({path: "senderId", select:"_id firstName middleName lastName role email"}).populate({path: "receiverId", select:"_id firstName middleName lastName role email"}).
-                skip((page - 1) * limit).limit(limit);
+        if (type === "unanswered") {
+            if (user.role === "student") {
+                dms = await DM.find({
+                    senderId: user._id,
+                    isAnswered: false,
+                    transaction_id: { $exists: true },
+                })
+                    .populate({
+                        path: "senderId",
+                        select: "_id firstName middleName lastName role email",
+                    })
+                    .populate({
+                        path: "receiverId",
+                        select: "_id firstName middleName lastName role email",
+                    })
+                    .skip((page - 1) * limit)
+                    .limit(limit);
 
+                if (page === 1) {
+                    totalResult = await DM.countDocuments({
+                        senderId: user._id,
+                        isAnswered: false,
+                        transaction_id: { $exists: true },
+                    });
+                }
+            } else {
+                dms = await DM.find({
+                    receiverId: user._id,
+                    isAnswered: false,
+                    transaction_id: { $exists: true },
+                })
+                    .populate({
+                        path: "senderId",
+                        select: "_id firstName middleName lastName role email",
+                    })
+                    .populate({
+                        path: "receiverId",
+                        select: "_id firstName middleName lastName role email",
+                    })
+                    .skip((page - 1) * limit)
+                    .limit(limit);
 
-                if(page === 1){
-                    totalResult = await DM.countDocuments({ senderId: user._id, isAnswered: false, transaction_id: { $exists: true } });
+                if (page === 1) {
+                    totalResult = await DM.countDocuments({
+                        receiverId: user._id,
+                        isAnswered: false,
+                        transaction_id: { $exists: true },
+                    });
                 }
             }
-            else{
-                dms = await DM.find({ receiverId: user._id, isAnswered: false, transaction_id: { $exists: true } }).populate({path: "senderId", select:"_id firstName middleName lastName role email"}).populate({path: "receiverId", select:"_id firstName middleName lastName role email"})
-                .skip((page - 1) * limit).limit(limit);
+        } else {
+            if (user.role === "student") {
+                dms = await DM.find({
+                    senderId: user._id,
+                    isAnswered: true,
+                    transaction_id: { $exists: true },
+                })
+                    .populate({
+                        path: "senderId",
+                        select: "_id firstName middleName lastName role email",
+                    })
+                    .populate({
+                        path: "receiverId",
+                        select: "_id firstName middleName lastName role email",
+                    })
+                    .sort({ answerDateAndTime: -1 })
+                    .skip((page - 1) * limit)
+                    .limit(limit);
 
-
-                if(page === 1){
-                    totalResult = await DM.countDocuments({ receiverId: user._id, isAnswered: false, transaction_id: { $exists: true } });
-
+                if (page === 1) {
+                    totalResult = await DM.countDocuments({
+                        senderId: user._id,
+                        isAnswered: true,
+                        transaction_id: { $exists: true },
+                    });
                 }
-            }
-        }else{
-            if(user.role === "student"){
-                dms = await DM.find({ senderId: user._id, isAnswered: true, transaction_id: { $exists: true } }).populate({path: "senderId", select:"_id firstName middleName lastName role email"}).populate({path: "receiverId", select:"_id firstName middleName lastName role email"}).sort({answerDateAndTime: -1}).
-                skip((page - 1) * limit).limit(limit);
+            } else {
+                dms = await DM.find({
+                    receiverId: user._id,
+                    isAnswered: true,
+                    transaction_id: { $exists: true },
+                })
+                    .populate({
+                        path: "senderId",
+                        select: "_id firstName middleName lastName role email",
+                    })
+                    .populate({
+                        path: "receiverId",
+                        select: "_id firstName middleName lastName role email",
+                    })
+                    .sort({ answerDateAndTime: -1 })
+                    .skip((page - 1) * limit)
+                    .limit(limit);
 
-
-                if(page === 1){
-                    totalResult = await DM.countDocuments({ senderId: user._id, isAnswered: true, transaction_id: { $exists: true } });
-                }
-            }
-            else{
-                dms = await DM.find({ receiverId: user._id, isAnswered: true, transaction_id: { $exists: true } }).populate({path: "senderId", select:"_id firstName middleName lastName role email"}).populate({path: "receiverId", select:"_id firstName middleName lastName role email"}).sort({answerDateAndTime: -1}).
-                skip((page - 1) * limit).limit(limit);
-
-
-                if(page === 1){
-                    totalResult = await DM.countDocuments({ receiverId: user._id, isAnswered: true, transaction_id: { $exists: true } });
-                    
+                if (page === 1) {
+                    totalResult = await DM.countDocuments({
+                        receiverId: user._id,
+                        isAnswered: true,
+                        transaction_id: { $exists: true },
+                    });
                 }
             }
         }
 
-        console.log({totalResult})
+        console.log({ totalResult });
 
-        res.status(200).json({success:true, data:dms, totalResult:totalResult});
-
-    }catch(err){
-        res.status(200).json({success:false, msg:err.toString()})
+        res.status(200).json({
+            success: true,
+            data: dms,
+            totalResult: totalResult,
+        });
+    } catch (err) {
+        res.status(200).json({ success: false, msg: err.toString() });
     }
-}
-
+};
 
 const answerToDM = async (req, res) => {
-
-    try{
+    try {
         const people = getPeople(req.role);
 
         const user = await people.findOne({ email: req.userEmail });
@@ -85,11 +145,11 @@ const answerToDM = async (req, res) => {
             throw new Error("User not found");
         }
 
-        if(user.role !== "instructor"){
+        if (user.role !== "instructor") {
             throw new Error("Only instructors can answer DM");
         }
 
-        if(!req.body.answer){
+        if (!req.body.answer) {
             throw new Error("Answer is required");
         }
 
@@ -103,22 +163,36 @@ const answerToDM = async (req, res) => {
 
         const isAnswered = dm.isAnswered;
 
-        if(isAnswered){
+        if (isAnswered) {
             throw new Error("DM already answered");
         }
 
-        if(dm.receiverId.toString() !== user._id.toString()){
+        if (dm.receiverId.toString() !== user._id.toString()) {
             throw new Error("You are not authorized to answer this DM");
         }
 
-        await DM.findByIdAndUpdate(id, { isAnswered: true, answer: req.body.answer, answerDateAndTime: Date.now() });
+        await DM.findByIdAndUpdate(id, {
+            isAnswered: true,
+            answer: req.body.answer,
+            answerDateAndTime: Date.now(),
+        });
 
-        res.status(200).json({success:true, msg:"DM answered successfully"});
-
-    }catch(err){
-        res.status(200).json({success:false, msg:err.toString()})
+        res.status(200).json({
+            success: true,
+            msg: "DM answered successfully",
+        });
+    } catch (err) {
+        res.status(200).json({ success: false, msg: err.toString() });
     }
-}
+};
 
+const makeSeen = async (req, res) => {
+    try {
+        let dm=await DM.findByIdAndUpdate(req.query.dmId,{seen:true});
+        res.status(200).json({ success: true, msg: "successfully converted",dm:dm });
+    } catch (err) {
+        res.status(200).json({ success: false, msg: err.toString() });
+    }
+};
 
-module.exports = {fetchDMOfUser, answerToDM};
+module.exports = { fetchDMOfUser, answerToDM,makeSeen };

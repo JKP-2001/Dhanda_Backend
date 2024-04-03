@@ -43,6 +43,7 @@ const BY_PRICE_HIGH_TO_LOW = "Price High to Low";
 async function interviewerListController(req, res) {
     try {
         const queryParameters = decryptFromJson(req.query.fetchId);
+        
         if (queryParameters == null) {
             throw new Error(
                 "Query is not valid, ensure parameter fetchId with encrypted data is present"

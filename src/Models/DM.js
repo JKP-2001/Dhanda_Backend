@@ -28,6 +28,10 @@ const dmSchema = new mongoose.Schema({
     },
     answerDateAndTime:{
         type:Date
+    },
+    seen:{
+        type:Boolean,
+        default:false
     }
 })
 
