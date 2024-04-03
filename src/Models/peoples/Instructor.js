@@ -119,6 +119,7 @@ const userSchema = new mongoose.Schema({
         type:Number,
         default:45
     },
+    
     //only for tutors
     category :{
         type:String,
