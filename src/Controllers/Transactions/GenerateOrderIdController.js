@@ -60,13 +60,13 @@ const { validateGenerateOrderId } = require("../../validations/Transactions/Vali
 
 
 
-async function generateOrderIdController(req,res){
+async function generateOrderIdController(req, res) {
     try {
         validateGenerateOrderId(req.body)
-        
+
         const options = {
             amount: req.body.amount,
-            currency:req.body.currency,
+            currency: req.body.currency,
             payment_capture: 1,
             receipt: crypto.randomBytes(10).toString('hex'),
         }
@@ -74,26 +74,29 @@ async function generateOrderIdController(req,res){
 
         const order = await razorpayInstance.orders.create(options)
         console.log('order is ', order)
-        const instructorId= req.body.instructorId
+        const instructorId = req.body.instructorId
         const studentId = req.body.studentId
+        const service = req.body.service
 
-        const transactionId = await createPendingTransaction({...options,order:order.id, createdAt:order.created_at,studentId,instructorId});
+        const transactionId = await createPendingTransaction({ ...options, order: order.id, createdAt: order.created_at, studentId, instructorId, service });
 
         await checkSlotStatus()
 
-        const newData = {...order, name: 'Interview Hub', 
-        transactionId}
+        const newData = {
+            ...order, name: 'Interview Hub',
+            transactionId
+        }
 
-        let result = {success:true,data:newData}
+        let result = { success: true, data: newData }
 
         res.status(200).json(result);
     }
-    catch(e){
+    catch (e) {
         logger('Error at GenerateOrderIdController :', e)
-        console.log({error:e});
-        res.status(400).json({success:false, msg:e.toString()})
+        console.log({ error: e });
+        res.status(400).json({ success: false, msg: e.toString() })
     }
 }
 
-module.exports = {generateOrderIdController}
+module.exports = { generateOrderIdController }
 

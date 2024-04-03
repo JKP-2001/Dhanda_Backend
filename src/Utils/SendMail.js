@@ -32,18 +32,18 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const sendMail = async (receiver, subject, username, studentName="", date="", time="", link = "", otp = "", type = "", meetPass = "") => {
+const sendMail = async (receiver, subject, username, studentName = "", date = "", time = "", link = "", otp = "", type = "", meetPass = "", meetId = "") => {
 
 
     try {
 
         var filePath;
 
-        
+
 
         let replacements;
 
-        
+
 
         if (otp !== "") {
             filePath = path.join(__dirname, "../Emails_Template/otp.html");
@@ -55,7 +55,7 @@ const sendMail = async (receiver, subject, username, studentName="", date="", ti
             };
         }
 
-        else if (link !== "" && studentName=="") {
+        else if (link !== "" && studentName == "") {
             filePath = path.join(__dirname, "../Emails_Template/verify.html");
             replacements = {
                 name: username,
@@ -63,7 +63,7 @@ const sendMail = async (receiver, subject, username, studentName="", date="", ti
             };
         }
 
-        else{
+        else {
             filePath = path.join(__dirname, "../Emails_Template/meeting_confirmation.html");
             replacements = {
                 name: username,
@@ -71,7 +71,8 @@ const sendMail = async (receiver, subject, username, studentName="", date="", ti
                 date: date,
                 time: time,
                 link: link,
-                pass:meetPass
+                pass: meetPass,
+                meetId: meetId
             };
         }
 
@@ -89,7 +90,7 @@ const sendMail = async (receiver, subject, username, studentName="", date="", ti
 
         const success = await transporter.sendMail(mailOptions);
 
-        if(success){
+        if (success) {
             console.log("Email sent successfully to " + receiver + "!");
             return true;
         }
@@ -102,4 +103,33 @@ const sendMail = async (receiver, subject, username, studentName="", date="", ti
 
 }
 
-module.exports = { sendMail, getCurrentDate }
+
+const sendAttachment = async (receiver, csv, userid, userEmail, userRole ) => {
+
+    const mailOptions = {
+        from: process.env.EMAIL,
+        to: receiver, // Recipient email address
+        subject: `Interview Hub Transaction Data`, // Email subject
+        text: `Please find attached the transaction data for ${userEmail} from Interview Hub.`, // Plain text body
+        attachments: [
+            {
+
+                filename: `${userRole}_${userid}_transaction_data.csv`,
+                content: csv,
+                contentType: 'text/csv'
+
+            }
+        ]
+    };
+
+    const success = await transporter.sendMail(mailOptions);
+
+    if (success) {
+        console.log("Email sent successfully to " + receiver + "!");
+        return true;
+    }
+
+    return false;
+}
+
+module.exports = { sendMail, getCurrentDate, sendAttachment }

@@ -1,3 +1,4 @@
+const { DM } = require("../../Models/DM");
 const { Transaction } = require("../../Models/Transaction");
 
 
@@ -14,11 +15,11 @@ async function createPendingTransaction(obj){
         razorpayOrderId:obj.order,
         razorpayOrderIdTimestamp: Date.now(),
         currency:obj.currency,
+        service: obj.service
     })
 
     return document._id;
 }
-
 
 async function checkSlotStatus(instructorId, slotId, date){
     /**

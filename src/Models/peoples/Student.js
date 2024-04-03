@@ -112,7 +112,8 @@ const userSchema = new mongoose.Schema({
     role:{
         type:String,
         required:true
-    }
+    },
+    dms:[{type:mongoose.Schema.Types.ObjectId, default:[], ref:"dm"}],
 })
 
 const Student = mongoose.model("student",userSchema)
