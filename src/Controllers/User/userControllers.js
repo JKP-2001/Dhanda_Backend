@@ -8,6 +8,65 @@ const { encryptToJson, decryptFromJson } = require("../../Utils/EncryptDecrypt")
 const { getPeople, getRoleFromReq } = require("../../helpers/HelperFunctions");
 
 
+const fs = require('fs');
+
+
+const AWS = require('aws-sdk');
+
+const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID
+const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+const BUCKET_REGION = process.env.BUCKET_REGION
+
+
+
+
+const s3 = new AWS.S3({
+    accessKeyId: AWS_ACCESS_KEY_ID,
+    secretAccessKey: AWS_SECRET_ACCESS_KEY,
+    region: BUCKET_REGION
+});
+
+const deleteS3Files = async (imageUrls) => {
+
+    const deletePromises = imageUrls.map(async (url) => {
+        const key = url.split('/').pop(); // Assuming the key is the last part of the URL
+        const params = {
+            Bucket: 'mock-interview',
+            Key: key,
+        };
+        await s3.deleteObject(params).promise();
+    });
+
+    await Promise.all(deletePromises);
+
+};
+
+
+const uploadFilesToAWS = async (files) => {
+    const uploadPromises = files.map(async (file) => {
+        const params = {
+            Bucket: 'mock-interview',
+            Key: file.originalname,
+            Body: file.buffer,
+        };
+
+        return new Promise((resolve, reject) => {
+            s3.upload(params, (err, data) => {
+                if (err) {
+                    console.error(err);
+                    reject(`Error uploading file ${file.originalname}`);
+                } else {
+                    resolve(data.Location || ''); // Ensure to handle the case when Location is undefined
+                }
+            });
+        });
+    });
+
+    const uploadedUrls = await Promise.all(uploadPromises.filter(url => url !== '')); // Filter out empty URLs
+
+    return uploadedUrls;
+}
+
 
 
 const getUserData = async (req, res) => {
@@ -206,6 +265,43 @@ const handleTimeSlots = async (req, res) => {
 }
 
 
+const profileImageUpload = async (req, res) => {
+
+    try {
+        const role = getRoleFromReq(req)
+        const people = getPeople(role)
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+
+        const files = req.files;
+
+        const profilepic = user.profilePic
+
+        const uploadedUrls = await uploadFilesToAWS(files);
+
+        if(profilepic){
+            await deleteS3Files([profilepic]);
+        }
+
+        await people.findByIdAndUpdate(
+            user._id,
+            {
+                profilePic: uploadedUrls[0]
+            }
+        )
+
+        res.status(200).json({success: true, msg: "Image uploaded successfully", url: uploadedUrls[0]});
+
+    }catch(err){
+        res.status(400).json({success:false, msg:err.toString()});
+    }
+}
+
+
 const contactus = async (req, res) => {
 
     try {
@@ -225,4 +321,4 @@ const contactus = async (req, res) => {
     }
 }
 
-module.exports = { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots,contactus };
+module.exports = { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots,contactus, profileImageUpload };
