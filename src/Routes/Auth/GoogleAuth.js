@@ -85,6 +85,7 @@ passport.use(
           role: ROLE,
           socialLoginId: profile.id,
           loginProvider: "google",
+          profilePic: profile._json.picture,
         }
 
         const newUser = await people.create(newDATA);
