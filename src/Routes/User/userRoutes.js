@@ -2,7 +2,7 @@
 const userRouter = require("express").Router();
 
 const multer = require("multer");
-const { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots,contactus, profileImageUpload } = require("../../Controllers/User/userControllers");
+const { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots,contactus, profileImageUpload, addEducation, editEducation, addExperience, updateExperience } = require("../../Controllers/User/userControllers");
 const { checkUser } = require("../../Middlewares/checkUser");
 
 
@@ -26,5 +26,9 @@ userRouter.post("/contactus", contactus);
 userRouter.patch("/onboarding", checkUser, onBoardingProcess);
 userRouter.patch("/handle-time-slots", checkUser, handleTimeSlots);
 userRouter.patch("/profile-image-upload", checkUser, upload.array('files'), profileImageUpload);
+userRouter.post("/add-education", checkUser, addEducation);
+userRouter.patch("/edit-education/:id", checkUser, editEducation);
+userRouter.post("/add-experience", checkUser, addExperience);
+userRouter.patch("/edit-experience/:id", checkUser, updateExperience);
 
 module.exports = userRouter

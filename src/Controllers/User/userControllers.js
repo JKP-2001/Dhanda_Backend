@@ -321,4 +321,133 @@ const contactus = async (req, res) => {
     }
 }
 
-module.exports = { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots,contactus, profileImageUpload };
+
+const addEducation = async (req, res) => {
+
+    try {
+        const role = getRoleFromReq(req)
+        const people = getPeople(role)
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const newEducation = await Education.create({
+            author_id: user._id,
+            instituteName: req.body.instituteName,
+            startDate: req.body.startDate,
+            endDate: req.body.endDate?req.body.endDate:null,
+            onGoing: req.body.onGoing?true:false,
+            description: req.body.description,
+            degree: req.body.degree,
+            branch: req.body.branch,
+            refModel: role
+        });
+
+        await people.findOneAndUpdate({ _id: user._id }, { $push: { education: newEducation._id } });
+
+        res.status(200).json({ success: true, msg: "Education added successfully", data: newEducation });
+
+    } catch (error) {
+        res.status(400).json({ success: false, msg: error.toString() });
+    }
+}
+
+
+const editEducation = async (req, res) => {
+
+    try {
+        const role = getRoleFromReq(req)
+        const people = getPeople(role)
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const educationId = req.params.id;
+
+        const isEducationExist = await Education.findById(educationId);
+
+        if (!isEducationExist) {
+            throw new Error("Education not found");
+        }
+
+        if(isEducationExist.author_id.toString() !== user._id.toString()){
+            throw new Error("You are not authorized to edit this education");
+        }
+
+        const updatedEducation = await Education.findByIdAndUpdate(educationId, req.body, { new: true });
+
+        res.status(200).json({ success: true, msg: "Education updated successfully", data: updatedEducation });
+
+    } catch (error) {
+        res.status(400).json({ success: false, msg: error.toString() });
+    }
+}
+
+const addExperience = async (req, res) => {
+
+    try {
+        const role = getRoleFromReq(req)
+        const people = getPeople(role)
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const newExperience = await Experience.create({
+            author_id: user._id,
+            company: req.body.company,
+            role: req.body.role,
+            startDate: req.body.startDate,
+            endDate: req.body.endDate?req.body.endDate:Date.now(),
+            onGoing: req.body.onGoing?true:false,
+            description: req.body.description,
+            refModel: role
+        });
+
+        await people.findOneAndUpdate({ _id: user._id }, { $push: { experience: newExperience._id } });
+
+        res.status(200).json({ success: true, msg: "Experience added successfully", data: newExperience });
+
+    } catch (error) {
+        res.status(400).json({ success: false, msg: error.toString() });
+    }
+}
+
+const updateExperience = async (req, res) => {
+    try{
+
+        const role = getRoleFromReq(req)
+        const people = getPeople(role)
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const experienceId = req.params.id;
+
+        const isExperienceExist = await Experience.findById(experienceId);
+
+        if (!isExperienceExist) {
+            throw new Error("Experience not found");
+        }
+
+        if(isExperienceExist.author_id.toString() !== user._id.toString()){
+            throw new Error("You are not authorized to edit this experience");
+        }
+
+        const updatedExperience = await Experience.findByIdAndUpdate(experienceId, req.body, { new: true });
+
+        res.status(200).json({ success: true, msg: "Experience updated successfully", data: updatedExperience });
+
+    }catch(error){
+        res.status(400).json({ success: false, msg: error.toString() });   
+    }
+}
+
+module.exports = { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots,contactus, profileImageUpload, addEducation, editEducation, addExperience, updateExperience };
