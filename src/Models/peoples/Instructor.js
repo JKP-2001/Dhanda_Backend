@@ -92,7 +92,7 @@ const userSchema = new mongoose.Schema({
     availableTimeslots:{type:timeSlotSchema, default:{}},
     createdAt:{
         type:Date,
-        default:Date.now   
+        default:Date.now()   
     },
     feedbacks:[{type:mongoose.Schema.Types.ObjectId, default:[]}],
 
@@ -125,7 +125,7 @@ const userSchema = new mongoose.Schema({
     //only for tutors, in minutes
     interviewDuration:{
         type:Number,
-        default:45
+        default:60
     },
     
     //only for tutors
