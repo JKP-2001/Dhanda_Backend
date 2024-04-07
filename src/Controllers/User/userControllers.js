@@ -450,4 +450,72 @@ const updateExperience = async (req, res) => {
     }
 }
 
-module.exports = { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots,contactus, profileImageUpload, addEducation, editEducation, addExperience, updateExperience };
+const deleteEducation = async (req, res) => {
+
+    try {
+        const role = getRoleFromReq(req)
+        const people = getPeople(role)
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const educationId = req.params.id;
+
+        const isEducationExist = await Education.findById(educationId);
+
+        if (!isEducationExist) {
+            throw new Error("Education not found");
+        }
+
+        if(isEducationExist.author_id.toString() !== user._id.toString()){
+            throw new Error("You are not authorized to delete this education");
+        }
+
+        await Education.findByIdAndDelete(educationId);
+
+        await people.findOneAndUpdate({ _id: user._id }, { $pull: { education: educationId } });
+
+        res.status(200).json({ success: true, msg: "Education deleted successfully" });
+
+    } catch (error) {
+        res.status(400).json({ success: false, msg: error.toString() });
+    }
+}
+
+const deleteExperience = async (req, res) => {
+
+    try {
+        const role = getRoleFromReq(req)
+        const people = getPeople(role)
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const experienceId = req.params.id;
+
+        const isExperienceExist = await Experience.findById(experienceId);
+
+        if (!isExperienceExist) {
+            throw new Error("Experience not found");
+        }
+
+        if(isExperienceExist.author_id.toString() !== user._id.toString()){
+            throw new Error("You are not authorized to delete this experience");
+        }
+
+        await Experience.findByIdAndDelete(experienceId);
+
+        await people.findOneAndUpdate({ _id: user._id }, { $pull: { experience: experienceId } });
+
+        res.status(200).json({ success: true, msg: "Experience deleted successfully" });
+
+    } catch (error) {
+        res.status(400).json({ success: false, msg: error.toString() });
+    }
+}
+
+module.exports = { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots,contactus, profileImageUpload, addEducation, editEducation, addExperience, updateExperience, deleteEducation,deleteExperience };
