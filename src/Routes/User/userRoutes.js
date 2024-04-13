@@ -2,7 +2,7 @@
 const userRouter = require("express").Router();
 
 const multer = require("multer");
-const { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots,contactus, profileImageUpload, addEducation, editEducation, addExperience, updateExperience, deleteEducation, deleteExperience } = require("../../Controllers/User/userControllers");
+const { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots,contactus, profileImageUpload, addEducation, editEducation, addExperience, updateExperience, deleteEducation, deleteExperience, editPersonalInfo } = require("../../Controllers/User/userControllers");
 const { checkUser } = require("../../Middlewares/checkUser");
 
 
@@ -44,5 +44,6 @@ userRouter.delete("/delete-education/:id", checkUser, deleteEducation);
 
 userRouter.delete("/delete-experience/:id", checkUser, deleteExperience);
 
+userRouter.patch("/edit/person-info", checkUser, editPersonalInfo)
 
 module.exports = userRouter

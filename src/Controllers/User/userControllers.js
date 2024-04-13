@@ -518,4 +518,26 @@ const deleteExperience = async (req, res) => {
     }
 }
 
-module.exports = { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots,contactus, profileImageUpload, addEducation, editEducation, addExperience, updateExperience, deleteEducation,deleteExperience };
+
+const editPersonalInfo = async (req, res) => {
+
+    try {
+        const role = getRoleFromReq(req)
+        const people = getPeople(role)
+        const user = await people.findOne({ email: req.userEmail });
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+
+        const updatedUser = await people.findOneAndUpdate({ _id: user._id }, req.body, { new: true });
+
+        res.status(200).json({ success: true, msg: "Personal info updated successfully", data: updatedUser });
+
+    } catch (error) {
+        res.status(400).json({ success: false, msg: error.toString() });
+    }
+
+}
+module.exports = { getUserData, onBoardingProcess, getUserDataById, handleTimeSlots,contactus, profileImageUpload, addEducation, editEducation, addExperience, updateExperience, deleteEducation,deleteExperience, editPersonalInfo };
