@@ -105,7 +105,7 @@ const getUserData = async (req, res) => {
 }
 
 
-const getUserDataById = async (req, res) => {
+const  getUserDataById = async (req, res) => {
 
     try {
         const role = req.params.role;
